@@ -42,6 +42,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython==0.29.36
 
+      - name: Check NDKs
+        run: |
+          echo "ANDROIDNDK=$ANDROIDNDK"
+          echo "LEGACY_NDK=$LEGACY_NDK"
+	  ls -la /home/runner/.buildozer/android/platform/
+
       - name: Build APK
         run: |
           buildozer -v android debug
