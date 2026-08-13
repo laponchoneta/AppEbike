@@ -1,0 +1,571 @@
+#: import Factory kivy.factory.Factory
+<DisconnectPopup@Popup>:
+    title: "Disconnect"
+    bold:True
+    separator_color: 0, 0, 0, 1
+    size_hint: .5, .3
+    auto_dismiss: False
+    title_color: 1, 1, 1, 1
+    background_color: 0,0,0,1
+    separator_height: 2
+
+    canvas.before:
+        Color:
+            rgba: (36/255, 75/255, 94/255, 1)
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [15]  #
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "¿Do you want to disconnect?"
+            bold:True
+            font_size: 30
+            color: 1,1,1,1
+
+        BoxLayout:
+            size_hint_y: None
+            height: '44dp'
+            spacing: 10
+
+            Button:
+                text: "Cancel"
+                bold:True
+                on_release: app.cancel_disconnect(*args)
+                on_release: root.dismiss()
+                background_color: 0.3, 0.3, 0.3, 1
+                color: 1, 1, 1, 1
+
+                on_press: self.background_color = [0, 0,0, 1]
+                on_release: self.background_color = [0.3, 0.3, 0.3, 1]
+
+            Button:
+                text: "Accept"
+                bold:True
+                on_release: app.accept_disconnect(*args)
+                on_release: root.dismiss()
+                background_normal: ''
+                background_color: (36/255, 75/255, 94/255, 1)
+                color: 1, 1, 1, 1
+                on_press: self.background_color = [0, 0, 0, 1]
+                on_release: self.background_color = (36/255, 75/255, 94/255, 1)
+
+
+<ExitPopup@Popup>:
+    title: "Exit"
+    bold:True
+    separator_color: 0, 0, 0, 1
+    size_hint: .5, .3
+    auto_dismiss: False
+    title_color: 1, 1, 1, 1
+    background_color: 0,0,0,1
+    separator_height: 2
+
+    canvas.before:
+        Color:
+            rgba: 0.996, 0.239, 0.188, 1
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [15]  #
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "¿Do you want to exit?"
+            bold:True
+            font_size: 30
+            color: 0.8, 0.8, 0.8, 1
+
+        BoxLayout:
+            size_hint_y: None
+            height: '44dp'
+            spacing: 10
+
+            Button:
+                text: "Cancel"
+                bold:True
+                on_release: app.cancel_exit(*args)
+                on_release: root.dismiss()
+                background_color: 0.3, 0.3, 0.3, 1
+                color: 1, 1, 1, 1
+
+                on_press: self.background_color = [0, 0,0, 1]
+                on_release: self.background_color = [0.3, 0.3, 0.3, 1]
+
+            Button:
+                text: "Accept"
+                bold:True
+                on_release: app.accept_exit(*args)
+                on_release: root.dismiss()
+                background_normal: ''
+                background_color: 0.996, 0.239, 0.188, 1
+                color: 1, 1, 1, 1
+                on_press: self.background_color = [0, 0, 0, 1]
+                on_release: self.background_color = [0.996, 0.239, 0.188, 1]
+
+WindowManager:
+    MainWindow:
+    SecondaryWindow:
+
+<DropdownOptions@SpinnerOption>:
+    font_size: 30
+    bold: True
+    color: (153/255, 153/255, 143/255, 1)
+    background_color: 0,0,0,0
+    background_normal: ''
+
+<SpinnerDropdown@Dropdown>:
+    auto_width: True
+    background_color: 0,0,0,0
+    color: 1,1,1,1
+    max_height: 500
+    effect_cls: 'ScrollEffect'
+    scoll_type: ['bars', 'content']
+
+
+<CircularProgressBar>:
+    canvas.before:
+        Color:
+            rgba: root.bar_bg_color + [0.3]
+        Line:
+            width: root.bar_width
+            ellipse: (self.x, self.y, self.width, self.height, root.start_value, root.end_value)
+    canvas.after:
+        Color:
+            rgb: (0.2745, 0.5922, 0.7020, 1)
+        Line:
+            width: root.bar_width
+            ellipse: (self.x, self.y, self.width, self.height, root.start_value, root.set_value*3.6*root.tick)
+    MDLabel:
+        text: root.text
+        font_size: root.font_size
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        halign: 'center'
+
+
+# Main Window
+<MainWindow>:
+    name: 'main_window'
+
+    # "Top Bar Design"
+    # Se ajusta la Top Bar para posicionarla en la parte superior
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+
+        # Se define el contenedor de la Top Bar
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            height: '70dp'
+            width: self.parent.width
+
+            # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
+            canvas.before:
+                Color:
+                    rgba: (36/255, 75/255, 94/255, 1)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            # Se añade un label al contenedor
+            Label:
+                text: 'eBIKE'
+                text_size: self.size
+                size_hint: None, None
+                font_size: '30sp'
+                font_name: 'BalooBhaijaan2-Bold.ttf'
+                color: 1,1,1,1
+                height: '70dp'
+                width: self.parent.width - dp(90)
+                halign: 'left'
+                valign: 'middle'
+                padding_x: dp(20)
+
+    # "Label Bluetooth Connection Design"
+    Label:
+        text: 'Bluetooth Connection'
+        size_hint_y: None
+        font_size: '20sp'
+        color: 1, 1, 1, 1
+        height: self.texture_size[1]
+        pos_hint: {'center_x': 0.5,'center_y':0.8}
+
+    # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+    MDFloatLayout:
+        size: root.width, root.height/2
+
+        # "Button Search Devices"
+        MDFillRoundFlatButton:
+            id: ble_button
+            text: 'Search Devices'
+            font_size: 38
+            font_name: 'Roboto-Bold.ttf'
+            pos_hint: {'center_x': 0.5,'center_y':0.7}
+            md_bg_color: (153/255, 153/255, 143/255, 1)
+            text_color: 0, 0, 0, 1
+            ripple_effect: False
+            ripple_color: 1, 1, 1, 0
+            on_press:
+                self.md_bg_color = (153/255, 153/255, 143/255, 1)
+                self.text_color = [0, 0, 0, 1]
+            on_release:
+                self.md_bg_color = (153/255, 153/255, 143/255, 1)
+                self.text_color = [0, 0, 0, 1]
+                app.connect_ble(*args)
+
+        # "Button Menú despegable"
+        Spinner:
+            id: device_dropdown
+            text: '...'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+            option_cls: "DropdownOptions"
+            dropdown_cls: "SpinnerDropdown"
+            disabled: False
+            size_hint: None, None
+            size: 0,0
+            text_color: 0,0,0,0
+            background_color: 0.6, 0.6, 0.561, 1
+            on_text: app.device_clicked(*args)
+
+        # "Animación para indicar acción"
+        MDSpinner:
+            id: spinner
+            pos_hint: {'center_x':0.5,'center_y':0.5}
+            color: (0.274, 0.592, 0.702, 1)
+            size_hint: None, None
+            size: dp(46), dp(46)
+            active: False
+
+        # "Button Exit"
+        MDFillRoundFlatButton:
+            id: exit_button
+            text: '      Exit      '
+            font_size: 32
+            bold: True
+            font_name: 'BalooBhaijaan2-Bold.ttf'
+            pos_hint: {"center_x": 0.5, "y": 0.1}
+            md_bg_color: 0.643, 0.255, 0.255, 1
+            text_color: 1,1,1,1
+            size_hint: None, None
+            on_release: Factory.ExitPopup().open()
+
+# Secondary Window
+<SecondaryWindow>:
+    name: 'secondary_window'
+    # Se ajusta la Top Bar para posicionarla en la parte superior
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+
+        # Se define el contenedor de la Top Bar
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            height: '70dp'
+            width: self.parent.width
+
+            # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
+            canvas.before:
+                Color:
+                    rgba: (36/255, 75/255, 94/255, 1)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            # Se añade un label al contenedor
+            Label:
+                text: 'eBIKE'
+                text_size: self.size
+                size_hint: None, None
+                font_size: '30sp'
+                font_name: 'BalooBhaijaan2-Bold.ttf'
+                color: 1,1,1,1
+                height: '70dp'
+                width: self.parent.width - dp(90)
+                halign: 'left'
+                valign: 'middle'
+                padding_x: dp(20)
+
+    # Menu de Navegador
+    MDBottomNavigation:
+        id: nav
+        panel_color: "#244B5E"
+        selected_color_background: "#17303D"
+        text_color_active: "#A7D0D2"
+
+        # Window 1
+        MDBottomNavigationItem:
+            name: 'screen 1'
+            text: 'Status'
+            on_tab_release: app.screen_flag_1(*args)
+            icon: 'velocimetro.png'
+
+            # Se ajusta la Top Bar para posicionarla en la parte superior
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'top'
+
+                # Se define el contenedor de la Top Bar
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: None, None
+                    height: '70dp'
+                    width: self.parent.width
+
+                    # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
+                    canvas.before:
+                        Color:
+                            rgba: (36/255, 75/255, 94/255, 1)
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+                    # Se añade un label al contenedor
+                    Label:
+                        text: 'eBIKE'
+                        text_size: self.size
+                        size_hint: None, None
+                        font_size: '30sp'
+                        font_name: 'BalooBhaijaan2-Bold.ttf'
+                        color: 1,1,1,1
+                        height: '70dp'
+                        width: self.parent.width - dp(90)
+                        halign: 'left'
+                        valign: 'middle'
+                        padding_x: dp(20)
+
+            # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+            MDFloatLayout:
+                size: root.width, root.height
+                orientation: 'vertical'
+
+                # Label Velocity
+                Label:
+                    text: 'Velocity'
+                    font_size: '20sp'
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    pos_hint: {'center_x': 0.5,'center_y':0.85}
+                    color: 1, 1, 1, 1
+
+                # Se define un circular progress como indicador de velocidad en Km
+                CircularProgressBar:
+                    id: speed_indicator
+                    text: '0 km/h'
+                    font_size: 52
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.7}
+                    size_hint: None, None
+                    size: 350,350
+                    padding: 20
+                    start_value: -90
+                    end_value: 90
+                    set_value: -25
+                    bar_color: 1,0.54,0
+                    tick: 1
+
+                # Label Battery
+                Label:
+                    text: 'Battery'
+                    font_size: '20sp'
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    pos_hint: {'center_x': 0.5,'center_y':0.35}
+                    color: 1, 1, 1, 1
+
+                # Se define un circular progress como indicador de bateria en %
+                CircularProgressBar:
+                    id: baterry_indicator
+                    text: '0%'
+                    font_size: 52
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                    size_hint: None, None
+                    size: 350, 350
+                    padding: 20
+                    start_value: 0
+                    end_value: 360
+                    set_value: 0
+                    tick: 1
+
+                # Label Control
+                Label:
+                    text: 'Control'
+                    font_size: '20sp'
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    pos_hint: {'center_x': 0.5,'center_y':0.6}
+                    color: 1, 1, 1, 1
+
+                # Se define un indicador del Set Point deseado
+                MDRectangleFlatButton:
+                    id: sp_indicator
+                    text: 'SP: 0'
+                    pos_hint: {'center_x': 0.3, 'center_y': 0.5}
+                    markup: True
+                    md_bg_color: (36/255, 75/255, 94/255, 1)
+                    text_color: 1,1,1,1
+                    bold: True
+                    font_size: 54
+
+                # Se define un indicador de la Manipulación
+                MDRectangleFlatButton:
+                    id: manip_indicator
+                    text: 'M: 0'
+                    pos_hint: {'center_x': 0.7, 'center_y': 0.5}
+                    markup: True
+                    md_bg_color: (36/255, 75/255, 94/255, 1)
+                    text_color: 1,1,1,1
+                    bold: True
+                    font_size: 54
+
+        # Window 2
+        MDBottomNavigationItem:
+            name: 'screen 2'
+            text: 'Settings'
+            icon: 'configuraciones.png'
+            on_tab_release: app.screen_flag_2(*args)
+
+            # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+            MDBoxLayout:
+                orientation: 'vertical'
+                size: root.width, root.height
+
+                # Se define el siguiente subcontenedor para posicionar widgets sin restricciones fijas
+                MDBoxLayout:
+                    size: root.width, root.height*0.2
+                    orientation: 'vertical'
+                    padding: '10dp'
+
+                    # Sección Motion Detect
+                    MDCard:
+                        color:
+                        rgba:(0.208, 0.208, 0.192, 1)
+                        radius: '7dp'
+                        padding: '5dp'
+                        line_color: (0.208, 0.208, 0.192, 1)
+
+                        MDLabel:
+                            text: '     Motion Detect'
+                            font_size: '25sp'
+                            halign: 'center'
+                            pos_hint: {'center_y' : 0.5}
+
+                        MDSwitch:
+                            id: adapt_switch
+                            thumb_color: 0, 0, 0, 1
+                            thumb_color_down: 0.4, 0.898, 0.223, 1
+                            track_color_normal: 0.4, 0.898, 0.223, 1
+                            track_color_active: 0.4, 0.898, 0.223, 1
+                            pos_hint: {'center_x':0.5,'center_y':0.5}
+                            on_active:
+                                app.switch_motion_detect(*args)
+
+                # Label Mode
+                Label:
+                    text: 'Select Mode'
+                    font_size: '20sp'
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    pos_hint: {'center_x': 0.5,'center_y':0.6}
+                    color: 1, 1, 1, 1
+
+                # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+                MDFloatLayout:
+                    size: root.width, root.height*0.3
+
+                    # Button Manual
+                    MDFillRoundFlatButton:
+                        text: '  Manual  '
+                        font_size: 38
+                        bold: True
+                        font_name: 'Roboto-Bold.ttf'
+                        pos_hint: {'center_x': 0.3, 'center_y': 0.5}
+                        markup: True
+                        md_bg_color: (153/255, 153/255, 143/255, 1)
+                        text_color: (18/255, 18/255, 18/255, 1)
+                        on_release:
+                            app.slider_unit_per(*args)
+
+                    # Button Automatico
+                    MDFillRoundFlatButton:
+                        text: 'Automatic '
+                        font_size: 38
+                        bold: True
+                        font_name: 'Roboto-Bold.ttf'
+                        pos_hint: {'center_x': 0.7, 'center_y': 0.5}
+                        markup: True
+                        md_bg_color: (167/255, 208/255, 210/255, 1)
+                        text_color: (18/255, 18/255, 18/255, 1)
+                        on_release:
+                            app.slider_unit_km(*args)
+
+                MDBoxLayout:
+                    size: root.width, root.height*0.1
+
+                    MDLabel:
+                        id: read_slider_text
+                        text: '0'
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                        halign: 'center'
+                        font_size: 54
+                        font_name: 'NotoSans-Medium.ttf'
+                        bold: True
+
+                MDBoxLayout:
+                    size: root.width, root.height*0.1
+                    orientation: 'vertical'
+                    padding: '10dp'
+
+                    MDSlider:
+                        id: adapt_slider
+                        min: 0
+                        max: 100
+                        step: 5
+                        orientation: 'horizontal'
+                        padding: '20dp'
+                        hint: True
+                        hint_text_color: 'white'
+                        hint_bg_color: (36/255, 75/255, 94/255, 1)
+                        thumb_color_disabled: 'grey'
+                        on_value:
+                            app.slider_on_value(*args)
+                        on_touch_up: if self.collide_point(*args[1].pos): app.slider_touch_up(*args)
+
+                MDFloatLayout:
+
+                    #MDFillRoundFlatButton:
+                        #md_bg_color: (36/255, 75/255, 94/255, 1)
+
+                        #text_color: (1, 1, 1, 1)
+                        #md_bg_color: (36/255, 75/255, 94/255, 1)
+                        #id: angle_indicator
+                        #text: 'Angle : 0°'
+                        #pos_hint: {'center_x': 0.5, 'center_y': 0.4}
+
+
+                    # Se define un indicador del Set Point deseado
+                    MDRectangleFlatButton:
+                        id: angle_indicator
+                        text: 'Angle : 0°'
+                        font_size: 54
+                        text_color: 1,1,1,1
+                        bold: True
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.4}
+                        markup: True
+                        md_bg_color: (36/255, 75/255, 94/255, 1)
+
+
+        MDBottomNavigationItem:
+            name: 'screen 3'
+            text: 'Disconnect'
+            icon: 'desenchufado.png'
+            on_tab_release: Factory.DisconnectPopup().open()
