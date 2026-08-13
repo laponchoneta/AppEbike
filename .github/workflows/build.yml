@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "ANDROIDNDK=$ANDROIDNDK"
           echo "LEGACY_NDK=$LEGACY_NDK"
-	  ls -la /home/runner/.buildozer/android/platform/
+          ls -la /home/runner/.buildozer/android/platform/
 
       - name: Build APK
         run: |
