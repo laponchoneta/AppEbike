@@ -48,7 +48,11 @@ jobs:
 
       - name: Build APK
         run: |
-          buildozer -v android debug
+          which python
+          python --version
+          python -m pip show buildozer
+          python -m buildozer --version
+          python -m buildozer -v android debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
