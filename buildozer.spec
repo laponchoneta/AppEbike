@@ -42,7 +42,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,numpy,kivy,requests,certifi,plyer,bleak==0.20.2,kivymd==1.0.2,typing_extensions,async_timeout,Pillow,docutils,idna,filterpy
+requirements = python3,scipy,numpy,kivy,requests,certifi,plyer,bleak==0.20.2,kivymd==1.0.2,typing_extensions,async_timeout,Pillow,docutils,idna,filterpy
 
 
 # (str) Custom source folders for requirements
