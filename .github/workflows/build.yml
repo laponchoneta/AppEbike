@@ -22,17 +22,22 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install dependencies
+    - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev ncurses-dev libtinfo5 ccache libltdl-dev
+        sudo apt-get install -y \
+          git zip unzip openjdk-17-jdk autoconf libtool pkg-config \
+          zlib1g-dev libncurses5-dev ncurses-dev libtinfo5 ccache \
+          libltdl-dev libffi-dev libssl-dev
+
+    - name: Install Python build tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install --upgrade cython==0.29.36 buildozer
 
     - name: Build with Buildozer
-      uses: kivy/buildozer-action@v1
-      id: buildozer
-      with:
-        filename: buildozer.spec
-        android_release: false
+      run: |
+        buildozer -v android debug
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
