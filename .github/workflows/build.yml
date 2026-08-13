@@ -37,11 +37,14 @@ jobs:
             libltdl-dev \
             ccache
 
-      - name: Install Python build tools
+      - name: Install legacy Android NDK r21e
         run: |
-          python -m pip install --upgrade pip
-          pip install buildozer cython==0.29.36
-
+          cd $HOME
+          wget -q https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
+          unzip -q android-ndk-r21e-linux-x86_64.zip
+          echo "LEGACY_NDK=$HOME/android-ndk-r21e" >> $GITHUB_ENV
+          echo "LEGACY_NDK=$HOME/android-ndk-r21e"
+          ls -la $HOME/android-ndk-r21e
 
       - name: Build APK
         run: |
