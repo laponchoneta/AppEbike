@@ -4,12 +4,14 @@ from kivy.properties import Clock
 
 
 class CircularProgressBar(AnchorLayout):
-    bar_color = ListProperty([0,1,0])
-    bar_bg_color = ListProperty([0.7,0.7,0.7])
+    bar_color = ListProperty([1, 0.96, 0, 1])
+    bar_bg_color = ListProperty([0.23, 0.23, 0.23, 1])
+    text_color = ListProperty([1, 1, 1, 1])
     bar_width = NumericProperty(10)
     set_value = NumericProperty(5)
     text = StringProperty('0%')
     font_size = NumericProperty(40)
+    font_name = StringProperty('Roboto')
     tick = NumericProperty(1)
     start_value = NumericProperty(0)
     end_value = NumericProperty(360)
