@@ -538,11 +538,27 @@ class Main(MDApp):
     # ------------------------------------------------------------------ #
     # Segundo plano (Etapa 4)
     # ------------------------------------------------------------------ #
+    # ------------------------------------------------------------------ #
+    # Segundo plano (Etapa 4)
+    # ------------------------------------------------------------------ #
     def _enter_background_mode(self) -> None:
         """Mantiene viva la app con la pantalla apagada mientras hay conexion."""
         if not self.feat_background:
             return
         acquire_wake_lock()
+        
+        # PREVENCIÓN DE CRASHEO API 34: Android matará la app si se inicia el
+        # servicio sin que el usuario haya aceptado los popups de Bluetooth.
+        if platform == 'android':
+            from android.permissions import Permission, check_permission
+            try:
+                bt_connect = getattr(Permission, 'BLUETOOTH_CONNECT', 'android.permission.BLUETOOTH_CONNECT')
+                if not check_permission(bt_connect):
+                    Logger.warning('[BLE] Permiso BT_CONNECT denegado. Posponiendo servicio en primer plano.')
+                    return
+            except Exception as e:
+                Logger.warning(f'[BLE] Error validando permisos para servicio: {e!r}')
+
         if not start_background_service():
             Logger.warning('[BLE] Sin servicio en primer plano: '
                            'Android puede congelar la app en segundo plano')
