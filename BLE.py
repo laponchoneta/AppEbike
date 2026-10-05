@@ -11,7 +11,7 @@ from kivy.clock import Clock
 
 from android_utils import is_bluetooth_enabled
 
-# --- Constantes de reconexion ---
+# Parametros de reconexion BLE
 RECONNECT_INTERVAL = 5.0
 CONNECT_TIMEOUT = 10.0
 GATT_TIMEOUT = 5.0
