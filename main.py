@@ -3,6 +3,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.utils import platform
+from kivy.clock import Clock
 import os
 import asyncio
 import json
@@ -48,7 +49,8 @@ class Main(MDApp):
         """setting design for application widget development specifications on design.kv"""
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Gray'
-        # GPS setup and start
+        # Una sola instancia del GPS para toda la app
+        self.gps = GpsHelper()
         if GPS_ON:
             self.get_permissions()
         return Builder.load_file(filename='design.kv')
@@ -87,22 +89,38 @@ class Main(MDApp):
         self.slider_value = 0
         self.slider_flag = False
 
+        # El GPS arranca desde aqui para que ya tenga senial al conectar
+        self.start_gps()
+
+    def start_gps(self, *args) -> None:
+        """Arranca el GPS (una sola vez). Si falla, no debe tumbar la conexion BLE."""
+        if not GPS_ON:
+            return
+        try:
+            self.gps.run(self.speed_queue)
+        except Exception as e:
+            Logger.error(f'[GPS] No se pudo iniciar: {e!r}')
+
     def get_permissions(self):
         # Request permissions on Android
         if platform == 'android':
             from android.permissions import Permission, request_permissions
-            def callback(permission, results):
-                if all([res for res in results]):
+
+            def callback(permissions, results):
+                if all(results):
                     print('Got all permissions')
                 else:
                     print('Did not get all permissions')
+                # Llega en el hilo de Java: el GPS se arranca en el de Kivy
+                Clock.schedule_once(self.start_gps)
 
             try:
+                # ACCESS_BACKGROUND_LOCATION no va aqui: en Android 11+ invalida toda la peticion
                 request_permissions(
-                    [Permission.ACCESS_COARSE_LOCATION, Permission.ACCESS_FINE_LOCATION, Permission.BLUETOOTH,
-                     Permission.BLUETOOTH_ADMIN, Permission.WAKE_LOCK, Permission.BLUETOOTH_CONNECT,
-                     Permission.ACCESS_BACKGROUND_LOCATION,
-                     callback])
+                    [Permission.ACCESS_COARSE_LOCATION, Permission.ACCESS_FINE_LOCATION,
+                     Permission.BLUETOOTH, Permission.BLUETOOTH_ADMIN,
+                     'android.permission.BLUETOOTH_SCAN', Permission.BLUETOOTH_CONNECT],
+                    callback)
             except Exception as e:
                 print(e)
 
@@ -112,12 +130,12 @@ class Main(MDApp):
             self.root.get_screen('main_window').ids.spinner.active = True
             try:
                 self.ble_task = asyncio.create_task(run_BLE(self, self.datajson_queue, self.battery_queue, self.device_queue, self.manipulation_queue))
-                self.gps_task = GpsHelper().run(self.speed_queue)
                 self.update_battery_task = asyncio.ensure_future(self.update_battery_value())
                 self.update_speed_task = asyncio.ensure_future(self.update_speed_value())
                 self.update_manipulation_task = asyncio.ensure_future(self.update_manipulation_value())
             except Exception as e:
                 print(e)
+            self.start_gps()
 
     def device_clicked(self, _, value: str) -> None:
         """Handles events in main window dropdown"""
