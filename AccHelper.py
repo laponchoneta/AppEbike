@@ -1,47 +1,56 @@
+# -*- coding: utf-8 -*-
+from kivy.logger import Logger
 from kivy.utils import platform
-from kivy.clock import Clock
 import asyncio
 import json
 
 
 class AccHelper:
-    sensorEnabled: bool = False
+    """Lee el acelerometro del celular y publica acc_y para el ESP32.
+
+    run() es una corrutina: main.py la registra como tarea unica y la cancela
+    al desconectar, asi no quedan lecturas huerfanas.
+    """
+    sensor_enabled: bool = False
     x = 0
     y = 0
     z = 0
-    def run(self, acc_q: asyncio.Queue) -> None:
-        print('run_acc')
-        self.acc_q = acc_q
-        if platform == 'android' or platform == 'ios':
-            from plyer import accelerometer
-            self.accelerometer = accelerometer
-            try:
-                print(f'in_acc')
-                if not self.sensorEnabled:
-                    self.accelerometer.enable()
-                    print('acc_enable')
-                    asyncio.ensure_future(self.get_acceleration(1))
-                    self.sensorEnabled = True
-                    self.init_velo = 0
-                else:
-                    self.accelerometer.disable()
-                    self.sensorEnabled = False
-            except NotImplementedError:
-                import traceback
-                traceback.print_exc()
 
-    async def get_acceleration(self, dt):
-        while self.sensorEnabled:
-            val = self.accelerometer.acceleration[:3]
-            if not val == (None,None,None):
-                self.x = val[0]
-                self.y = val[1]
-                self.z = val[2]
-                print(f'accelerometer_values: {val}')
+    async def run(self, acc_q: asyncio.Queue, dt: float = 1.0) -> None:
+        if platform not in ('android', 'ios'):
+            return
+        from plyer import accelerometer
+
+        self.acc_q = acc_q
+        try:
+            accelerometer.enable()
+        except NotImplementedError:
+            Logger.warning('[BLE] El acelerometro no esta disponible en este dispositivo')
+            return
+        except Exception as e:
+            Logger.warning(f'[BLE] No se pudo activar el acelerometro: {e!r}')
+            return
+
+        self.sensor_enabled = True
+        Logger.info('[BLE] Acelerometro activado')
+        try:
+            while True:
                 try:
-                    self.acc_q.put_nowait(json.dumps({'acc_y': self.y}))
-                    print("Acceleration: ")
-                    print(self.y)
+                    val = accelerometer.acceleration[:3]
+                    if val != (None, None, None):
+                        self.x, self.y, self.z = val
+                        self.acc_q.put_nowait(json.dumps({'acc_y': self.y}))
+                except asyncio.CancelledError:
+                    raise
                 except Exception as e:
-                    print(f'EXCEPTION ACC :: {e}')
-            await asyncio.sleep(dt)
+                    Logger.warning(f'[BLE] Error leyendo el acelerometro: {e!r}')
+                await asyncio.sleep(dt)
+        except asyncio.CancelledError:
+            raise
+        finally:
+            self.sensor_enabled = False
+            try:
+                accelerometer.disable()
+                Logger.info('[BLE] Acelerometro apagado')
+            except Exception as e:
+                Logger.warning(f'[BLE] No se pudo apagar el acelerometro: {e!r}')

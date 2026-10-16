@@ -1,571 +1,1342 @@
 #: import Factory kivy.factory.Factory
+#: import theme theme
+
+# Dialogo de desconexion
 <DisconnectPopup@Popup>:
-    title: "Disconnect"
-    bold:True
-    separator_color: 0, 0, 0, 1
-    size_hint: .5, .3
+    title: 'Desconectar'
+    title_color: theme.rgba(theme.TEXT)
+    title_size: '18sp'
+    title_font: theme.FONT_TITLE
+    separator_color: theme.rgba(theme.UDEM_YELLOW)
+    separator_height: dp(2)
+    size_hint: 0.86, None
+    height: dp(210)
     auto_dismiss: False
-    title_color: 1, 1, 1, 1
-    background_color: 0,0,0,1
-    separator_height: 2
+    background: ''
+    background_color: 0, 0, 0, 0
 
     canvas.before:
         Color:
-            rgba: (36/255, 75/255, 94/255, 1)
+            rgba: theme.rgba(theme.SURFACE)
         RoundedRectangle:
             size: self.size
             pos: self.pos
-            radius: [15]  #
+            radius: [dp(16)]
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 10
+        padding: dp(12)
+        spacing: dp(12)
 
         Label:
-            text: "¿Do you want to disconnect?"
-            bold:True
-            font_size: 30
-            color: 1,1,1,1
+            text: '¿Seguro que quieres desconectarte de la bicicleta?'
+            font_size: '17sp'
+            color: theme.rgba(theme.TEXT)
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width, None
 
         BoxLayout:
             size_hint_y: None
-            height: '44dp'
-            spacing: 10
+            height: dp(52)
+            spacing: dp(10)
 
-            Button:
-                text: "Cancel"
-                bold:True
-                on_release: app.cancel_disconnect(*args)
-                on_release: root.dismiss()
-                background_color: 0.3, 0.3, 0.3, 1
-                color: 1, 1, 1, 1
+            AnchorLayout:
+                MDRoundFlatButton:
+                    text: 'Cancelar'
+                    font_size: '16sp'
+                    text_color: theme.rgba(theme.TEXT)
+                    line_color: theme.rgba(theme.TEXT_DIM)
+                    on_release:
+                        app.cancel_disconnect(*args)
+                        root.dismiss()
 
-                on_press: self.background_color = [0, 0,0, 1]
-                on_release: self.background_color = [0.3, 0.3, 0.3, 1]
-
-            Button:
-                text: "Accept"
-                bold:True
-                on_release: app.accept_disconnect(*args)
-                on_release: root.dismiss()
-                background_normal: ''
-                background_color: (36/255, 75/255, 94/255, 1)
-                color: 1, 1, 1, 1
-                on_press: self.background_color = [0, 0, 0, 1]
-                on_release: self.background_color = (36/255, 75/255, 94/255, 1)
+            AnchorLayout:
+                MDFillRoundFlatButton:
+                    text: 'Desconectar'
+                    font_size: '16sp'
+                    md_bg_color: theme.rgba(theme.UDEM_YELLOW)
+                    text_color: theme.rgba(theme.UDEM_CHARCOAL)
+                    on_release:
+                        app.accept_disconnect(*args)
+                        root.dismiss()
 
 
+# Dialogo de salida
 <ExitPopup@Popup>:
-    title: "Exit"
-    bold:True
-    separator_color: 0, 0, 0, 1
-    size_hint: .5, .3
+    title: 'Salir'
+    title_color: theme.rgba(theme.TEXT)
+    title_size: '18sp'
+    title_font: theme.FONT_TITLE
+    separator_color: theme.rgba(theme.ERROR)
+    separator_height: dp(2)
+    size_hint: 0.86, None
+    height: dp(210)
     auto_dismiss: False
-    title_color: 1, 1, 1, 1
-    background_color: 0,0,0,1
-    separator_height: 2
+    background: ''
+    background_color: 0, 0, 0, 0
 
     canvas.before:
         Color:
-            rgba: 0.996, 0.239, 0.188, 1
+            rgba: theme.rgba(theme.SURFACE)
         RoundedRectangle:
             size: self.size
             pos: self.pos
-            radius: [15]  #
+            radius: [dp(16)]
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 10
+        padding: dp(12)
+        spacing: dp(12)
 
         Label:
-            text: "¿Do you want to exit?"
-            bold:True
-            font_size: 30
-            color: 0.8, 0.8, 0.8, 1
+            text: '¿Seguro que quieres salir de la aplicación?'
+            font_size: '17sp'
+            color: theme.rgba(theme.TEXT)
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width, None
 
         BoxLayout:
             size_hint_y: None
-            height: '44dp'
-            spacing: 10
+            height: dp(52)
+            spacing: dp(10)
 
-            Button:
-                text: "Cancel"
-                bold:True
-                on_release: app.cancel_exit(*args)
-                on_release: root.dismiss()
-                background_color: 0.3, 0.3, 0.3, 1
-                color: 1, 1, 1, 1
+            AnchorLayout:
+                MDRoundFlatButton:
+                    text: 'Cancelar'
+                    font_size: '16sp'
+                    text_color: theme.rgba(theme.TEXT)
+                    line_color: theme.rgba(theme.TEXT_DIM)
+                    on_release:
+                        app.cancel_exit(*args)
+                        root.dismiss()
 
-                on_press: self.background_color = [0, 0,0, 1]
-                on_release: self.background_color = [0.3, 0.3, 0.3, 1]
-
-            Button:
-                text: "Accept"
-                bold:True
-                on_release: app.accept_exit(*args)
-                on_release: root.dismiss()
-                background_normal: ''
-                background_color: 0.996, 0.239, 0.188, 1
-                color: 1, 1, 1, 1
-                on_press: self.background_color = [0, 0, 0, 1]
-                on_release: self.background_color = [0.996, 0.239, 0.188, 1]
+            AnchorLayout:
+                MDFillRoundFlatButton:
+                    text: 'Salir'
+                    font_size: '16sp'
+                    md_bg_color: theme.rgba(theme.ERROR)
+                    text_color: theme.rgba(theme.TEXT)
+                    on_release:
+                        app.accept_exit(*args)
+                        root.dismiss()
 
 WindowManager:
     MainWindow:
     SecondaryWindow:
 
+
+# --- Resumen automatico al terminar un recorrido (Etapa 3) ---
+<SummaryRow@BoxLayout>:
+    size_hint_y: None
+    height: dp(30)
+
+    Label:
+        id: name
+        text: ''
+        font_size: '15sp'
+        color: theme.rgba(theme.TEXT_DIM)
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.size
+
+    Label:
+        id: value
+        text: ''
+        font_size: '15sp'
+        bold: True
+        color: theme.rgba(theme.TEXT)
+        halign: 'right'
+        valign: 'middle'
+        text_size: self.size
+
+
+<SummaryPopup@Popup>:
+    title: 'Resumen del recorrido'
+    title_color: theme.rgba(theme.TEXT)
+    title_size: '18sp'
+    title_font: theme.FONT_TITLE
+    separator_color: theme.rgba(theme.UDEM_YELLOW)
+    separator_height: dp(2)
+    size_hint: 0.9, None
+    height: dp(330)
+    background: ''
+    background_color: 0, 0, 0, 0
+
+    canvas.before:
+        Color:
+            rgba: theme.rgba(theme.SURFACE)
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [dp(16)]
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(16), dp(10)
+        spacing: dp(4)
+
+        BoxLayout:
+            id: body
+            orientation: 'vertical'
+            spacing: dp(2)
+
+        AnchorLayout:
+            size_hint_y: None
+            height: dp(52)
+
+            MDFillRoundFlatButton:
+                text: 'Listo'
+                font_size: '16sp'
+                md_bg_color: theme.rgba(theme.UDEM_YELLOW)
+                text_color: theme.rgba(theme.UDEM_CHARCOAL)
+                on_release: root.dismiss()
+
+
+# --- Historial de recorridos (Etapa 3) ---
+<TripRow@BoxLayout>:
+    size_hint_y: None
+    height: dp(76)
+    spacing: dp(6)
+    padding: dp(12), dp(6)
+
+    canvas.before:
+        Color:
+            rgba: theme.rgba(theme.SURFACE_ALT)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(10)]
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        Label:
+            id: title
+            text: ''
+            font_size: '14sp'
+            bold: True
+            color: theme.rgba(theme.UDEM_YELLOW)
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+
+        Label:
+            id: detail
+            text: ''
+            font_size: '11sp'
+            color: theme.rgba(theme.TEXT)
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+
+        Label:
+            id: detail2
+            text: ''
+            font_size: '11sp'
+            color: theme.rgba(theme.TEXT_DIM)
+            halign: 'left'
+            valign: 'middle'
+            text_size: self.size
+
+    MDIconButton:
+        id: delete
+        icon: 'delete'
+        theme_text_color: 'Custom'
+        text_color: theme.rgba(theme.ERROR)
+        pos_hint: {'center_y': 0.5}
+
+
+<HistoryPopup@Popup>:
+    title: 'Historial de recorridos'
+    title_color: theme.rgba(theme.TEXT)
+    title_size: '18sp'
+    title_font: theme.FONT_TITLE
+    separator_color: theme.rgba(theme.UDEM_YELLOW)
+    separator_height: dp(2)
+    size_hint: 0.95, 0.82
+    background: ''
+    background_color: 0, 0, 0, 0
+
+    canvas.before:
+        Color:
+            rgba: theme.rgba(theme.SURFACE)
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [dp(16)]
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(12), dp(8)
+        spacing: dp(8)
+
+        Label:
+            id: empty
+            text: 'Todavía no hay recorridos guardados'
+            font_size: '15sp'
+            color: theme.rgba(theme.TEXT_DIM)
+            size_hint_y: None
+            height: dp(40)
+            opacity: 0
+
+        ScrollView:
+            bar_width: dp(3)
+
+            BoxLayout:
+                id: body
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(8)
+
+        AnchorLayout:
+            size_hint_y: None
+            height: dp(52)
+
+            MDRoundFlatButton:
+                text: 'Cerrar'
+                font_size: '16sp'
+                text_color: theme.rgba(theme.TEXT)
+                line_color: theme.rgba(theme.TEXT_DIM)
+                on_release: root.dismiss()
+
+
 <DropdownOptions@SpinnerOption>:
-    font_size: 30
+    font_size: '17sp'
     bold: True
-    color: (153/255, 153/255, 143/255, 1)
-    background_color: 0,0,0,0
+    color: theme.rgba(theme.TEXT)
     background_normal: ''
+    background_down: ''
+    background_color: theme.rgba(theme.SURFACE_ALT)
+    size_hint_y: None
+    height: dp(48)
 
 <SpinnerDropdown@Dropdown>:
     auto_width: True
-    background_color: 0,0,0,0
-    color: 1,1,1,1
-    max_height: 500
+    max_height: dp(260)
     effect_cls: 'ScrollEffect'
-    scoll_type: ['bars', 'content']
+
+    canvas.before:
+        Color:
+            rgba: theme.rgba(theme.SURFACE)
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
 
 <CircularProgressBar>:
     canvas.before:
         Color:
-            rgba: root.bar_bg_color + [0.3]
+            rgba: root.bar_bg_color
         Line:
             width: root.bar_width
             ellipse: (self.x, self.y, self.width, self.height, root.start_value, root.end_value)
     canvas.after:
         Color:
-            rgb: (0.2745, 0.5922, 0.7020, 1)
+            # En cero no se dibuja nada, si no quedaria una mancha del grosor de la linea
+            rgba: root.bar_color if abs(root.set_value * 3.6 * root.tick - root.start_value) > 0.5 else [0, 0, 0, 0]
         Line:
             width: root.bar_width
             ellipse: (self.x, self.y, self.width, self.height, root.start_value, root.set_value*3.6*root.tick)
     MDLabel:
         text: root.text
         font_size: root.font_size
+        font_name: root.font_name
+        theme_text_color: 'Custom'
+        text_color: root.text_color
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
         halign: 'center'
+
+
+# Chip de estado de la conexion (Tarea 1).
+# Se alimenta solo de las propiedades del App, por eso sirve en cualquier pantalla.
+<StatusChip@BoxLayout>:
+    orientation: 'horizontal'
+    size_hint: None, None
+    height: dp(30)
+    width: self.minimum_width
+    padding: dp(10), 0
+    spacing: dp(7)
+    pos_hint: {'center_y': 0.5}
+
+    canvas.before:
+        Color:
+            rgba: app.connection_color[0], app.connection_color[1], app.connection_color[2], 0.18
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(15)]
+
+    # Punto de color: late suavemente solo cuando la conexion esta en vivo
+    Widget:
+        size_hint: None, None
+        size: dp(11), dp(11)
+        pos_hint: {'center_y': 0.5}
+        opacity: app.pulse_opacity
+        canvas:
+            Color:
+                rgba: app.connection_color
+            Ellipse:
+                pos: self.pos
+                size: self.size
+
+    Label:
+        text: app.connection_text
+        font_size: '12sp'
+        bold: True
+        color: app.connection_color
+        size_hint: None, None
+        size: self.texture_size
+        pos_hint: {'center_y': 0.5}
+
+
+# Barra superior comun a las dos pantallas: logo UDEM + eBIKE + chip de estado
+<TopBar@BoxLayout>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(64)
+    padding: dp(14), dp(11)
+    spacing: dp(10)
+
+    canvas.before:
+        Color:
+            rgba: theme.rgba(theme.BAR)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: theme.rgba(theme.UDEM_YELLOW)
+        Rectangle:
+            pos: self.x, self.y
+            size: self.width, dp(2)
+
+    Image:
+        source: theme.LOGO
+        size_hint: None, 1
+        width: self.height * 1.992
+        allow_stretch: True
+        keep_ratio: True
+
+    Label:
+        text: 'eBIKE'
+        font_size: '21sp'
+        font_name: theme.FONT_TITLE
+        color: theme.rgba(theme.TEXT)
+        size_hint: None, None
+        # En pantallas angostas se cede el espacio al chip de estado
+        width: 0 if root.width < dp(355) else self.texture_size[0]
+        height: self.texture_size[1]
+        opacity: 0 if root.width < dp(355) else 1
+        pos_hint: {'center_y': 0.5}
+
+    Widget:
+
+    StatusChip:
 
 
 # Main Window
 <MainWindow>:
     name: 'main_window'
 
-    # "Top Bar Design"
-    # Se ajusta la Top Bar para posicionarla en la parte superior
-    AnchorLayout:
-        anchor_x: 'center'
-        anchor_y: 'top'
+    canvas.before:
+        Color:
+            rgba: theme.rgba(theme.BG)
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
-        # Se define el contenedor de la Top Bar
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint: None, None
-            height: '70dp'
-            width: self.parent.width
+    BoxLayout:
+        orientation: 'vertical'
 
-            # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
-            canvas.before:
-                Color:
-                    rgba: (36/255, 75/255, 94/255, 1)
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
+        TopBar:
 
-            # Se añade un label al contenedor
-            Label:
-                text: 'eBIKE'
-                text_size: self.size
+        FloatLayout:
+
+            # Logo grande y centrado, con su proporcion original
+            Image:
+                source: theme.LOGO
                 size_hint: None, None
-                font_size: '30sp'
-                font_name: 'BalooBhaijaan2-Bold.ttf'
-                color: 1,1,1,1
-                height: '70dp'
-                width: self.parent.width - dp(90)
-                halign: 'left'
-                valign: 'middle'
-                padding_x: dp(20)
+                width: min(root.width * 0.55, dp(260))
+                height: self.width / 1.992
+                pos_hint: {'center_x': 0.5, 'center_y': 0.84}
+                allow_stretch: True
+                keep_ratio: True
 
-    # "Label Bluetooth Connection Design"
-    Label:
-        text: 'Bluetooth Connection'
-        size_hint_y: None
-        font_size: '20sp'
-        color: 1, 1, 1, 1
-        height: self.texture_size[1]
-        pos_hint: {'center_x': 0.5,'center_y':0.8}
+            Label:
+                text: 'Conexión Bluetooth'
+                font_size: '18sp'
+                font_name: theme.FONT_BODY
+                color: theme.rgba(theme.TEXT_DIM)
+                size_hint: None, None
+                size: self.texture_size
+                pos_hint: {'center_x': 0.5, 'center_y': 0.67}
 
-    # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
-    MDFloatLayout:
-        size: root.width, root.height/2
+            # Boton principal: escanear y elegir dispositivo
+            MDFillRoundFlatButton:
+                id: ble_button
+                text: 'Buscar dispositivos'
+                font_size: '17sp'
+                font_name: theme.FONT_BODY
+                pos_hint: {'center_x': 0.5, 'center_y': 0.57}
+                md_bg_color: theme.rgba(theme.UDEM_YELLOW)
+                text_color: theme.rgba(theme.UDEM_CHARCOAL)
+                ripple_effect: False
+                disabled: app.connection_state != 'disconnected'
+                on_release:
+                    app.connect_ble(*args)
 
-        # "Button Search Devices"
-        MDFillRoundFlatButton:
-            id: ble_button
-            text: 'Search Devices'
-            font_size: 38
-            font_name: 'Roboto-Bold.ttf'
-            pos_hint: {'center_x': 0.5,'center_y':0.7}
-            md_bg_color: (153/255, 153/255, 143/255, 1)
-            text_color: 0, 0, 0, 1
-            ripple_effect: False
-            ripple_color: 1, 1, 1, 0
-            on_press:
-                self.md_bg_color = (153/255, 153/255, 143/255, 1)
-                self.text_color = [0, 0, 0, 1]
-            on_release:
-                self.md_bg_color = (153/255, 153/255, 143/255, 1)
-                self.text_color = [0, 0, 0, 1]
-                app.connect_ble(*args)
+            # Reconexion de 1 toque al ultimo ESP32 guardado, sin escanear
+            MDRoundFlatButton:
+                id: reconnect_button
+                text: 'Reconectar a ' + app.last_device_name
+                font_size: '16sp'
+                font_name: theme.FONT_BODY
+                pos_hint: {'center_x': 0.5, 'center_y': 0.46}
+                text_color: theme.rgba(theme.UDEM_YELLOW)
+                line_color: theme.rgba(theme.UDEM_YELLOW)
+                ripple_effect: False
+                opacity: 1 if (app.last_device_name and app.connection_state == 'disconnected') else 0
+                disabled: not (app.last_device_name and app.connection_state == 'disconnected')
+                on_release:
+                    app.reconnect_last(*args)
 
-        # "Button Menú despegable"
-        Spinner:
-            id: device_dropdown
-            text: '...'
-            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
-            option_cls: "DropdownOptions"
-            dropdown_cls: "SpinnerDropdown"
-            disabled: False
-            size_hint: None, None
-            size: 0,0
-            text_color: 0,0,0,0
-            background_color: 0.6, 0.6, 0.561, 1
-            on_text: app.device_clicked(*args)
+            # Lista de dispositivos encontrados
+            Spinner:
+                id: device_dropdown
+                text: ''
+                font_size: '16sp'
+                color: theme.rgba(theme.TEXT)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.35}
+                option_cls: "DropdownOptions"
+                dropdown_cls: "SpinnerDropdown"
+                disabled: True
+                size_hint: None, None
+                size: 0, 0
+                opacity: 0
+                background_normal: ''
+                background_down: ''
+                background_color: theme.rgba(theme.SURFACE_ALT)
+                on_text: app.device_clicked(*args)
 
-        # "Animación para indicar acción"
-        MDSpinner:
-            id: spinner
-            pos_hint: {'center_x':0.5,'center_y':0.5}
-            color: (0.274, 0.592, 0.702, 1)
-            size_hint: None, None
-            size: dp(46), dp(46)
-            active: False
+            MDSpinner:
+                id: spinner
+                pos_hint: {'center_x': 0.5, 'center_y': 0.23}
+                color: theme.rgba(theme.UDEM_YELLOW)
+                size_hint: None, None
+                size: dp(42), dp(42)
+                active: False
 
-        # "Button Exit"
-        MDFillRoundFlatButton:
-            id: exit_button
-            text: '      Exit      '
-            font_size: 32
-            bold: True
-            font_name: 'BalooBhaijaan2-Bold.ttf'
-            pos_hint: {"center_x": 0.5, "y": 0.1}
-            md_bg_color: 0.643, 0.255, 0.255, 1
-            text_color: 1,1,1,1
-            size_hint: None, None
-            on_release: Factory.ExitPopup().open()
+            MDRoundFlatButton:
+                id: exit_button
+                text: 'Salir'
+                font_size: '16sp'
+                font_name: theme.FONT_BODY
+                pos_hint: {'center_x': 0.5, 'center_y': 0.08}
+                text_color: theme.rgba(theme.ERROR)
+                line_color: theme.rgba(theme.ERROR)
+                ripple_effect: False
+                on_release: Factory.ExitPopup().open()
 
 # Secondary Window
 <SecondaryWindow>:
     name: 'secondary_window'
-    # Se ajusta la Top Bar para posicionarla en la parte superior
-    AnchorLayout:
-        anchor_x: 'center'
-        anchor_y: 'top'
 
-        # Se define el contenedor de la Top Bar
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint: None, None
-            height: '70dp'
-            width: self.parent.width
+    canvas.before:
+        Color:
+            rgba: theme.rgba(theme.BG)
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
-            # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
-            canvas.before:
-                Color:
-                    rgba: (36/255, 75/255, 94/255, 1)
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-
-            # Se añade un label al contenedor
-            Label:
-                text: 'eBIKE'
-                text_size: self.size
-                size_hint: None, None
-                font_size: '30sp'
-                font_name: 'BalooBhaijaan2-Bold.ttf'
-                color: 1,1,1,1
-                height: '70dp'
-                width: self.parent.width - dp(90)
-                halign: 'left'
-                valign: 'middle'
-                padding_x: dp(20)
-
-    # Menu de Navegador
+    # Menu de Navegador.
+    # Se le descuenta la altura de la barra superior para que el chip de estado
+    # quede visible en las 3 pestañas (la barra se declara al final del archivo).
     MDBottomNavigation:
         id: nav
-        panel_color: "#244B5E"
-        selected_color_background: "#17303D"
-        text_color_active: "#A7D0D2"
+        size_hint_y: None
+        height: root.height - dp(64)
+        pos_hint: {'x': 0, 'y': 0}
+        panel_color: theme.rgba(theme.BAR)
+        selected_color_background: theme.rgba(theme.SURFACE_ALT)
+        text_color_active: theme.rgba(theme.UDEM_YELLOW)
+        text_color_normal: theme.rgba(theme.TEXT_DIM)
 
-        # Window 1
+        # Pestaña 1: Estado
         MDBottomNavigationItem:
             name: 'screen 1'
-            text: 'Status'
+            text: 'Estado'
             on_tab_release: app.screen_flag_1(*args)
-            icon: 'velocimetro.png'
+            icon: 'speedometer'
 
-            # Se ajusta la Top Bar para posicionarla en la parte superior
-            AnchorLayout:
-                anchor_x: 'center'
-                anchor_y: 'top'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: dp(14), dp(10)
+                spacing: dp(6)
 
-                # Se define el contenedor de la Top Bar
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint: None, None
-                    height: '70dp'
-                    width: self.parent.width
+                canvas.before:
+                    Color:
+                        rgba: theme.rgba(theme.BG)
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
 
-                    # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
-                    canvas.before:
-                        Color:
-                            rgba: (36/255, 75/255, 94/255, 1)
-                        Rectangle:
-                            pos: self.pos
-                            size: self.size
+                Label:
+                    text: 'VELOCIDAD'
+                    font_size: '13sp'
+                    bold: True
+                    color: theme.rgba(theme.TEXT_DIM)
+                    size_hint_y: None
+                    height: dp(20)
 
-                    # Se añade un label al contenedor
-                    Label:
-                        text: 'eBIKE'
-                        text_size: self.size
+                # Medidor de velocidad (GPS del celular): escala 0-50 km/h
+                AnchorLayout:
+                    size_hint_y: 0.44
+
+                    CircularProgressBar:
+                        id: speed_indicator
+                        text: '0 km/h'
+                        font_size: sp(32)
+                        font_name: theme.FONT_NUMBER
+                        text_color: theme.rgba(theme.TEXT)
+                        bar_color: theme.rgba(theme.UDEM_YELLOW)
+                        bar_bg_color: theme.rgba(theme.TRACK)
+                        bar_width: dp(12)
                         size_hint: None, None
-                        font_size: '30sp'
-                        font_name: 'BalooBhaijaan2-Bold.ttf'
-                        color: 1,1,1,1
-                        height: '70dp'
-                        width: self.parent.width - dp(90)
-                        halign: 'left'
-                        valign: 'middle'
-                        padding_x: dp(20)
+                        width: min(self.parent.width * 0.8, self.parent.height)
+                        height: self.width
+                        start_value: -135
+                        end_value: 135
+                        set_value: -37.5
+                        tick: 1
 
-            # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
-            MDFloatLayout:
-                size: root.width, root.height
-                orientation: 'vertical'
-
-                # Label Velocity
-                Label:
-                    text: 'Velocity'
-                    font_size: '20sp'
+                # Recorrido en vivo (se puede apagar en Ajustes)
+                BoxLayout:
                     size_hint_y: None
-                    height: self.texture_size[1]
-                    pos_hint: {'center_x': 0.5,'center_y':0.85}
-                    color: 1, 1, 1, 1
+                    height: dp(54) if app.feat_trip else 0
+                    opacity: 1 if app.feat_trip else 0
+                    spacing: dp(2)
 
-                # Se define un circular progress como indicador de velocidad en Km
-                CircularProgressBar:
-                    id: speed_indicator
-                    text: '0 km/h'
-                    font_size: 52
-                    pos_hint: {'center_x': 0.5, 'center_y': 0.7}
-                    size_hint: None, None
-                    size: 350,350
-                    padding: 20
-                    start_value: -90
-                    end_value: 90
-                    set_value: -25
-                    bar_color: 1,0.54,0
-                    tick: 1
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'DIST km'
+                            font_size: '9sp'
+                            bold: True
+                            color: theme.rgba(theme.TEXT_DIM)
+                            size_hint_y: None
+                            height: dp(14)
+                        Label:
+                            text: app.trip_distance
+                            font_size: '16sp'
+                            bold: True
+                            font_name: theme.FONT_NUMBER
+                            color: theme.rgba(theme.TEXT)
 
-                # Label Battery
-                Label:
-                    text: 'Battery'
-                    font_size: '20sp'
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'TIEMPO'
+                            font_size: '9sp'
+                            bold: True
+                            color: theme.rgba(theme.TEXT_DIM)
+                            size_hint_y: None
+                            height: dp(14)
+                        Label:
+                            text: app.trip_time
+                            font_size: '16sp'
+                            bold: True
+                            font_name: theme.FONT_NUMBER
+                            color: theme.rgba(theme.TEXT)
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'PROM km/h'
+                            font_size: '9sp'
+                            bold: True
+                            color: theme.rgba(theme.TEXT_DIM)
+                            size_hint_y: None
+                            height: dp(14)
+                        Label:
+                            text: app.trip_avg
+                            font_size: '16sp'
+                            bold: True
+                            font_name: theme.FONT_NUMBER
+                            color: theme.rgba(theme.TEXT)
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text: 'MÁX km/h'
+                            font_size: '9sp'
+                            bold: True
+                            color: theme.rgba(theme.TEXT_DIM)
+                            size_hint_y: None
+                            height: dp(14)
+                        Label:
+                            text: app.trip_max
+                            font_size: '16sp'
+                            bold: True
+                            font_name: theme.FONT_NUMBER
+                            color: theme.rgba(theme.TEXT)
+
+                    # Pendiente calculada con el 'angle' del ESP32
+                    BoxLayout:
+                        orientation: 'vertical'
+                        opacity: 1 if app.live else 0.35
+                        Label:
+                            text: 'PEND %'
+                            font_size: '9sp'
+                            bold: True
+                            color: theme.rgba(theme.TEXT_DIM)
+                            size_hint_y: None
+                            height: dp(14)
+                        Label:
+                            text: app.trip_slope
+                            font_size: '16sp'
+                            bold: True
+                            font_name: theme.FONT_NUMBER
+                            color: theme.rgba(theme.UDEM_YELLOW)
+
+                # Tarjetas de control: set point y manipulacion
+                BoxLayout:
                     size_hint_y: None
-                    height: self.texture_size[1]
-                    pos_hint: {'center_x': 0.5,'center_y':0.35}
-                    color: 1, 1, 1, 1
+                    height: dp(92)
+                    spacing: dp(12)
 
-                # Se define un circular progress como indicador de bateria en %
-                CircularProgressBar:
-                    id: baterry_indicator
-                    text: '0%'
-                    font_size: 52
-                    pos_hint: {'center_x': 0.5, 'center_y': 0.2}
-                    size_hint: None, None
-                    size: 350, 350
-                    padding: 20
-                    start_value: 0
-                    end_value: 360
-                    set_value: 0
-                    tick: 1
-
-                # Label Control
-                Label:
-                    text: 'Control'
-                    font_size: '20sp'
-                    size_hint_y: None
-                    height: self.texture_size[1]
-                    pos_hint: {'center_x': 0.5,'center_y':0.6}
-                    color: 1, 1, 1, 1
-
-                # Se define un indicador del Set Point deseado
-                MDRectangleFlatButton:
-                    id: sp_indicator
-                    text: 'SP: 0'
-                    pos_hint: {'center_x': 0.3, 'center_y': 0.5}
-                    markup: True
-                    md_bg_color: (36/255, 75/255, 94/255, 1)
-                    text_color: 1,1,1,1
-                    bold: True
-                    font_size: 54
-
-                # Se define un indicador de la Manipulación
-                MDRectangleFlatButton:
-                    id: manip_indicator
-                    text: 'M: 0'
-                    pos_hint: {'center_x': 0.7, 'center_y': 0.5}
-                    markup: True
-                    md_bg_color: (36/255, 75/255, 94/255, 1)
-                    text_color: 1,1,1,1
-                    bold: True
-                    font_size: 54
-
-        # Window 2
-        MDBottomNavigationItem:
-            name: 'screen 2'
-            text: 'Settings'
-            icon: 'configuraciones.png'
-            on_tab_release: app.screen_flag_2(*args)
-
-            # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
-            MDBoxLayout:
-                orientation: 'vertical'
-                size: root.width, root.height
-
-                # Se define el siguiente subcontenedor para posicionar widgets sin restricciones fijas
-                MDBoxLayout:
-                    size: root.width, root.height*0.2
-                    orientation: 'vertical'
-                    padding: '10dp'
-
-                    # Sección Motion Detect
                     MDCard:
-                        color:
-                        rgba:(0.208, 0.208, 0.192, 1)
-                        radius: '7dp'
-                        padding: '5dp'
-                        line_color: (0.208, 0.208, 0.192, 1)
+                        orientation: 'vertical'
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(8)
+                        elevation: 0
+                        opacity: 1 if app.live else 0.35
 
                         MDLabel:
-                            text: '     Motion Detect'
-                            font_size: '25sp'
+                            text: 'SET POINT'
+                            font_size: '11sp'
+                            bold: True
                             halign: 'center'
-                            pos_hint: {'center_y' : 0.5}
+                            size_hint_y: None
+                            height: dp(16)
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT_DIM)
+
+                        MDLabel:
+                            id: sp_indicator
+                            text: 'SP: —'
+                            font_size: '26sp'
+                            font_name: theme.FONT_NUMBER
+                            bold: True
+                            halign: 'center'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.UDEM_YELLOW)
+
+                        # Aviso de seguridad: tras reconectar el SP NO se reenvia solo
+                        MDLabel:
+                            text: 'sin aplicar'
+                            font_size: '11sp'
+                            bold: True
+                            halign: 'center'
+                            size_hint_y: None
+                            height: dp(16)
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.WARN)
+                            opacity: 1 if app.assist_pending else 0
+
+                    MDCard:
+                        orientation: 'vertical'
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(8)
+                        elevation: 0
+                        opacity: 1 if app.live else 0.35
+
+                        MDLabel:
+                            text: 'MANIPULACIÓN'
+                            font_size: '11sp'
+                            bold: True
+                            halign: 'center'
+                            size_hint_y: None
+                            height: dp(16)
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT_DIM)
+
+                        MDLabel:
+                            id: manip_indicator
+                            text: 'M: —'
+                            font_size: '26sp'
+                            font_name: theme.FONT_NUMBER
+                            bold: True
+                            halign: 'center'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
+
+                        Widget:
+                            size_hint_y: None
+                            height: dp(16)
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: dp(20)
+
+                    Label:
+                        text: 'BATERÍA'
+                        font_size: '13sp'
+                        bold: True
+                        color: theme.rgba(theme.TEXT_DIM)
+                        halign: 'left'
+                        valign: 'middle'
+                        text_size: self.size
+
+                    # Autonomia estimada: aparece solo despues de 1 km recorrido
+                    Label:
+                        text: 'Autonomía ' + app.trip_range
+                        font_size: '12sp'
+                        color: theme.rgba(theme.TEXT_DIM)
+                        halign: 'right'
+                        valign: 'middle'
+                        text_size: self.size
+                        opacity: 1 if (app.feat_trip and app.trip_range != '—') else 0
+
+                # Medidor de bateria: el color lo ajusta main.py segun el nivel
+                AnchorLayout:
+                    size_hint_y: 0.3
+
+                    CircularProgressBar:
+                        id: baterry_indicator
+                        text: '—'
+                        font_size: sp(26)
+                        font_name: theme.FONT_NUMBER
+                        text_color: theme.rgba(theme.TEXT)
+                        bar_color: theme.rgba(theme.OK)
+                        bar_bg_color: theme.rgba(theme.TRACK)
+                        bar_width: dp(10)
+                        size_hint: None, None
+                        width: min(self.parent.width * 0.5, self.parent.height)
+                        height: self.width
+                        start_value: 0
+                        end_value: 360
+                        set_value: 0
+                        tick: 1
+                        opacity: 1 if app.live else 0.35
+
+        # Pestaña 2: Ajustes
+        MDBottomNavigationItem:
+            name: 'screen 2'
+            text: 'Ajustes'
+            icon: 'cog'
+            on_tab_release: app.screen_flag_2(*args)
+
+            ScrollView:
+                id: settings_scroll
+                bar_width: dp(3)
+
+                canvas.before:
+                    Color:
+                        rgba: theme.rgba(theme.BG)
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(14), dp(10)
+                    spacing: dp(8)
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    # Deteccion de movimiento (modo adaptativo)
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(64)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), 0
+                        elevation: 0
+
+                        MDLabel:
+                            text: 'Detección de movimiento'
+                            font_size: '16sp'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
+                            opacity: 1 if app.live else 0.35
 
                         MDSwitch:
                             id: adapt_switch
-                            thumb_color: 0, 0, 0, 1
-                            thumb_color_down: 0.4, 0.898, 0.223, 1
-                            track_color_normal: 0.4, 0.898, 0.223, 1
-                            track_color_active: 0.4, 0.898, 0.223, 1
-                            pos_hint: {'center_x':0.5,'center_y':0.5}
+                            size_hint_x: None
+                            width: dp(72)
+                            pos_hint: {'center_y': 0.5}
+                            thumb_color: theme.rgba(theme.TEXT_DIM)
+                            thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                            track_color_normal: theme.rgba(theme.TRACK)
+                            track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                            disabled: not app.live
                             on_active:
                                 app.switch_motion_detect(*args)
 
-                # Label Mode
-                Label:
-                    text: 'Select Mode'
-                    font_size: '20sp'
-                    size_hint_y: None
-                    height: self.texture_size[1]
-                    pos_hint: {'center_x': 0.5,'center_y':0.6}
-                    color: 1, 1, 1, 1
-
-                # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
-                MDFloatLayout:
-                    size: root.width, root.height*0.3
-
-                    # Button Manual
-                    MDFillRoundFlatButton:
-                        text: '  Manual  '
-                        font_size: 38
+                    Label:
+                        text: 'MODO DE ASISTENCIA'
+                        font_size: '13sp'
                         bold: True
-                        font_name: 'Roboto-Bold.ttf'
-                        pos_hint: {'center_x': 0.3, 'center_y': 0.5}
-                        markup: True
-                        md_bg_color: (153/255, 153/255, 143/255, 1)
-                        text_color: (18/255, 18/255, 18/255, 1)
-                        on_release:
-                            app.slider_unit_per(*args)
+                        color: theme.rgba(theme.TEXT_DIM)
+                        size_hint_y: None
+                        height: dp(20)
 
-                    # Button Automatico
-                    MDFillRoundFlatButton:
-                        text: 'Automatic '
-                        font_size: 38
-                        bold: True
-                        font_name: 'Roboto-Bold.ttf'
-                        pos_hint: {'center_x': 0.7, 'center_y': 0.5}
-                        markup: True
-                        md_bg_color: (167/255, 208/255, 210/255, 1)
-                        text_color: (18/255, 18/255, 18/255, 1)
-                        on_release:
-                            app.slider_unit_km(*args)
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(46)
+                        spacing: dp(12)
 
-                MDBoxLayout:
-                    size: root.width, root.height*0.1
+                        AnchorLayout:
+                            MDFillRoundFlatButton:
+                                id: manual_button
+                                text: 'Manual (%)'
+                                font_size: '15sp'
+                                font_name: theme.FONT_BODY
+                                md_bg_color: theme.rgba(theme.UDEM_YELLOW)
+                                text_color: theme.rgba(theme.UDEM_CHARCOAL)
+                                ripple_effect: False
+                                disabled: not app.live
+                                on_release:
+                                    app.slider_unit_per(*args)
+
+                        AnchorLayout:
+                            MDFillRoundFlatButton:
+                                id: auto_button
+                                text: 'Automático (km/h)'
+                                font_size: '15sp'
+                                font_name: theme.FONT_BODY
+                                md_bg_color: theme.rgba(theme.SURFACE_ALT)
+                                text_color: theme.rgba(theme.TEXT)
+                                ripple_effect: False
+                                disabled: not app.live
+                                on_release:
+                                    app.slider_unit_km(*args)
 
                     MDLabel:
                         id: read_slider_text
-                        text: '0'
-                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                        text: '0 %'
                         halign: 'center'
-                        font_size: 54
-                        font_name: 'NotoSans-Medium.ttf'
+                        font_size: '42sp'
+                        font_name: theme.FONT_NUMBER
                         bold: True
+                        size_hint_y: None
+                        height: dp(62)
+                        theme_text_color: 'Custom'
+                        text_color: theme.rgba(theme.UDEM_YELLOW)
+                        opacity: 1 if app.live else 0.35
 
-                MDBoxLayout:
-                    size: root.width, root.height*0.1
-                    orientation: 'vertical'
-                    padding: '10dp'
+                    # Aviso de seguridad: el valor mostrado todavia no se manda al ESP32
+                    Label:
+                        text: 'Valor sin aplicar: mueve el control para enviarlo'
+                        font_size: '13sp'
+                        bold: True
+                        color: theme.rgba(theme.WARN)
+                        size_hint_y: None
+                        height: dp(18)
+                        opacity: 1 if app.assist_pending else 0
 
                     MDSlider:
                         id: adapt_slider
+                        size_hint_y: None
+                        height: dp(48)
                         min: 0
                         max: 100
                         step: 5
                         orientation: 'horizontal'
-                        padding: '20dp'
                         hint: True
-                        hint_text_color: 'white'
-                        hint_bg_color: (36/255, 75/255, 94/255, 1)
-                        thumb_color_disabled: 'grey'
+                        hint_text_color: theme.rgba(theme.UDEM_CHARCOAL)
+                        hint_bg_color: theme.rgba(theme.UDEM_YELLOW)
+                        color: theme.rgba(theme.UDEM_YELLOW)
+                        thumb_color_inactive: theme.rgba(theme.UDEM_YELLOW)
+                        thumb_color_active: theme.rgba(theme.UDEM_YELLOW)
+                        thumb_color_disabled: theme.rgba(theme.TEXT_DIM)
+                        disabled: not app.live
                         on_value:
                             app.slider_on_value(*args)
                         on_touch_up: if self.collide_point(*args[1].pos): app.slider_touch_up(*args)
 
-                MDFloatLayout:
+                    # Inclinacion del terreno reportada por el ESP32
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(64)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), 0
+                        elevation: 0
+                        opacity: 1 if app.live else 0.35
 
-                    #MDFillRoundFlatButton:
-                        #md_bg_color: (36/255, 75/255, 94/255, 1)
+                        MDLabel:
+                            text: 'Inclinación'
+                            font_size: '16sp'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
 
-                        #text_color: (1, 1, 1, 1)
-                        #md_bg_color: (36/255, 75/255, 94/255, 1)
-                        #id: angle_indicator
-                        #text: 'Angle : 0°'
-                        #pos_hint: {'center_x': 0.5, 'center_y': 0.4}
+                        MDLabel:
+                            id: angle_indicator
+                            text: '—'
+                            halign: 'right'
+                            font_size: '24sp'
+                            font_name: theme.FONT_NUMBER
+                            bold: True
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.UDEM_YELLOW)
 
-
-                    # Se define un indicador del Set Point deseado
-                    MDRectangleFlatButton:
-                        id: angle_indicator
-                        text: 'Angle : 0°'
-                        font_size: 54
-                        text_color: 1,1,1,1
+                    # --- Funciones que se pueden encender o apagar (Etapa 3) ---
+                    Label:
+                        text: 'FUNCIONES'
+                        font_size: '13sp'
                         bold: True
-                        pos_hint: {'center_x': 0.5, 'center_y': 0.4}
-                        markup: True
-                        md_bg_color: (36/255, 75/255, 94/255, 1)
+                        color: theme.rgba(theme.TEXT_DIM)
+                        size_hint_y: None
+                        height: dp(20)
 
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(56)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), 0
+                        elevation: 0
 
+                        MDLabel:
+                            text: 'Recorrido en vivo'
+                            font_size: '15sp'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
+
+                        MDSwitch:
+                            size_hint_x: None
+                            width: dp(72)
+                            pos_hint: {'center_y': 0.5}
+                            active: app.feat_trip
+                            thumb_color: theme.rgba(theme.TEXT_DIM)
+                            thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                            track_color_normal: theme.rgba(theme.TRACK)
+                            track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                            on_active: app.feat_trip = self.active
+
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(56)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), 0
+                        elevation: 0
+
+                        MDLabel:
+                            text: 'Alertas y vibración'
+                            font_size: '15sp'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
+
+                        MDSwitch:
+                            size_hint_x: None
+                            width: dp(72)
+                            pos_hint: {'center_y': 0.5}
+                            active: app.feat_alerts
+                            thumb_color: theme.rgba(theme.TEXT_DIM)
+                            thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                            track_color_normal: theme.rgba(theme.TRACK)
+                            track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                            on_active: app.feat_alerts = self.active
+
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(56)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), 0
+                        elevation: 0
+
+                        MDLabel:
+                            text: 'Guardar historial'
+                            font_size: '15sp'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
+
+                        MDSwitch:
+                            size_hint_x: None
+                            width: dp(72)
+                            pos_hint: {'center_y': 0.5}
+                            active: app.feat_history
+                            thumb_color: theme.rgba(theme.TEXT_DIM)
+                            thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                            track_color_normal: theme.rgba(theme.TRACK)
+                            track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                            on_active: app.feat_history = self.active
+
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(56)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), 0
+                        elevation: 0
+
+                        MDLabel:
+                            text: 'Diagnóstico'
+                            font_size: '15sp'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
+
+                        MDSwitch:
+                            size_hint_x: None
+                            width: dp(72)
+                            pos_hint: {'center_y': 0.5}
+                            active: app.feat_diag
+                            thumb_color: theme.rgba(theme.TEXT_DIM)
+                            thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                            track_color_normal: theme.rgba(theme.TRACK)
+                            track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                            on_active: app.feat_diag = self.active
+
+                    Label:
+                        text: app.diag_text
+                        font_size: '11sp'
+                        color: theme.rgba(theme.TEXT_DIM)
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.width, None
+                        size_hint_y: None
+                        height: dp(30) if app.feat_diag else 0
+                        opacity: 1 if app.feat_diag else 0
+
+                    MDCard:
+                        size_hint_y: None
+                        height: dp(56)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), 0
+                        elevation: 0
+
+                        MDLabel:
+                            text: 'Seguir conectado en segundo plano'
+                            font_size: '15sp'
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT)
+
+                        MDSwitch:
+                            size_hint_x: None
+                            width: dp(72)
+                            pos_hint: {'center_y': 0.5}
+                            active: app.feat_background
+                            thumb_color: theme.rgba(theme.TEXT_DIM)
+                            thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                            track_color_normal: theme.rgba(theme.TRACK)
+                            track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                            on_active: app.feat_background = self.active
+
+                    # --- Grafica en vivo de los ultimos 60 s ---
+                    MDCard:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: dp(56) + (dp(158) if app.feat_chart else 0)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), dp(8)
+                        spacing: dp(6)
+                        elevation: 0
+
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(40)
+
+                            MDLabel:
+                                text: 'Gráfica (últimos 60 s)'
+                                font_size: '15sp'
+                                theme_text_color: 'Custom'
+                                text_color: theme.rgba(theme.TEXT)
+
+                            MDSwitch:
+                                size_hint_x: None
+                                width: dp(72)
+                                pos_hint: {'center_y': 0.5}
+                                active: app.feat_chart
+                                thumb_color: theme.rgba(theme.TEXT_DIM)
+                                thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                                track_color_normal: theme.rgba(theme.TRACK)
+                                track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                                on_active: app.feat_chart = self.active
+
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(18) if app.feat_chart else 0
+                            opacity: 1 if app.feat_chart else 0
+
+                            Label:
+                                text: '— Velocidad'
+                                font_size: '11sp'
+                                bold: True
+                                color: theme.rgba(theme.UDEM_YELLOW)
+
+                            Label:
+                                text: '— Set point'
+                                font_size: '11sp'
+                                bold: True
+                                color: theme.rgba(theme.OK)
+
+                            Label:
+                                text: '— Manipulación'
+                                font_size: '11sp'
+                                bold: True
+                                color: theme.rgba(theme.TEXT_DIM)
+
+                        LiveChart:
+                            id: live_chart
+                            size_hint_y: None
+                            height: dp(128) if app.feat_chart else 0
+                            opacity: 1 if app.feat_chart else 0
+                            bg_color: theme.rgba(theme.SURFACE_ALT)
+
+                    # --- Grabacion a CSV ---
+                    MDCard:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: dp(152)
+                        md_bg_color: theme.rgba(theme.SURFACE)
+                        line_color: 0, 0, 0, 0
+                        radius: [dp(14)]
+                        padding: dp(14), dp(8)
+                        spacing: dp(4)
+                        elevation: 0
+
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(40)
+
+                            MDLabel:
+                                text: 'Grabar datos (CSV)'
+                                font_size: '15sp'
+                                theme_text_color: 'Custom'
+                                text_color: theme.rgba(theme.TEXT)
+
+                            MDSwitch:
+                                size_hint_x: None
+                                width: dp(72)
+                                pos_hint: {'center_y': 0.5}
+                                active: app.feat_record
+                                thumb_color: theme.rgba(theme.TEXT_DIM)
+                                thumb_color_down: theme.rgba(theme.UDEM_YELLOW)
+                                track_color_normal: theme.rgba(theme.TRACK)
+                                track_color_active: theme.rgba(theme.UDEM_YELLOW, 0.5)
+                                on_active: app.feat_record = self.active
+
+                        MDLabel:
+                            text: app.recording_info
+                            font_size: '12sp'
+                            size_hint_y: None
+                            height: dp(20)
+                            theme_text_color: 'Custom'
+                            text_color: theme.rgba(theme.TEXT_DIM)
+
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(46)
+                            spacing: dp(10)
+
+                            AnchorLayout:
+                                MDFillRoundFlatButton:
+                                    text: 'Detener' if app.recording else 'Grabar'
+                                    font_size: '15sp'
+                                    md_bg_color: theme.rgba(theme.ERROR) if app.recording else theme.rgba(theme.UDEM_YELLOW)
+                                    text_color: theme.rgba(theme.TEXT) if app.recording else theme.rgba(theme.UDEM_CHARCOAL)
+                                    ripple_effect: False
+                                    disabled: not app.feat_record
+                                    on_release: app.toggle_recording()
+
+                            AnchorLayout:
+                                MDRoundFlatButton:
+                                    text: 'Compartir'
+                                    font_size: '15sp'
+                                    text_color: theme.rgba(theme.UDEM_YELLOW)
+                                    line_color: theme.rgba(theme.UDEM_YELLOW)
+                                    ripple_effect: False
+                                    disabled: not app.feat_record
+                                    on_release: app.share_recording()
+
+                    AnchorLayout:
+                        size_hint_y: None
+                        height: dp(52)
+
+                        MDRoundFlatButton:
+                            text: 'Ver historial de recorridos'
+                            font_size: '15sp'
+                            text_color: theme.rgba(theme.TEXT)
+                            line_color: theme.rgba(theme.TEXT_DIM)
+                            ripple_effect: False
+                            disabled: not app.feat_history
+                            on_release: app.open_history()
+
+        # Pestaña 3: Desconectar
         MDBottomNavigationItem:
             name: 'screen 3'
-            text: 'Disconnect'
-            icon: 'desenchufado.png'
+            text: 'Desconectar'
+            icon: 'bluetooth-off'
             on_tab_release: Factory.DisconnectPopup().open()
+
+            BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: theme.rgba(theme.BG)
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                MDLabel:
+                    text: 'Toca esta pestaña para desconectarte de la bicicleta'
+                    halign: 'center'
+                    font_size: '16sp'
+                    theme_text_color: 'Custom'
+                    text_color: theme.rgba(theme.TEXT_DIM)
+
+    # Barra superior: se declara al final para que se dibuje ENCIMA del navegador
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+
+        TopBar:
+
+    # Aviso flotante de las alertas (Etapa 3)
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+        padding: dp(12), dp(72)
+
+        BoxLayout:
+            size_hint_y: None
+            height: dp(44) if app.banner_visible else 0
+            opacity: 1 if app.banner_visible else 0
+            disabled: not app.banner_visible
+            padding: dp(14), 0
+
+            canvas.before:
+                Color:
+                    rgba: app.banner_color[0], app.banner_color[1], app.banner_color[2], 0.95
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(12)]
+
+            Label:
+                text: app.banner_text
+                font_size: '14sp'
+                bold: True
+                color: 0, 0, 0, 1
+                halign: 'left'
+                valign: 'middle'
+                text_size: self.size
+                shorten: True
