@@ -34,7 +34,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+version = 0.3
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -106,7 +106,7 @@ fullscreen = 0
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
 #android.permissions = android.permission.INTERNET, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
-android.permissions = INTERNET, ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION, WAKE_LOCK, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_SCAN, BLUETOOTH_CONNECT, ACCESS_SURFACE_FLINGER, BLUETOOTH_CONNECT, ACCESS_BACKGROUND_LOCATION
+android.permissions = INTERNET, ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION, WAKE_LOCK, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_SCAN, BLUETOOTH_CONNECT, ACCESS_SURFACE_FLINGER, BLUETOOTH_CONNECT, ACCESS_BACKGROUND_LOCATION, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=28)
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host, android.hardware.bluetooth_le

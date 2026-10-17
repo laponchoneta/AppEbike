@@ -152,6 +152,142 @@ WindowManager:
         halign: 'center'
 
 
+# Estado de la conexion y ubicacion del GPS, a la derecha de la barra superior
+<StatusInfo@BoxLayout>:
+    orientation: 'vertical'
+    padding: 0, dp(12), dp(16), dp(12)
+
+    BoxLayout:
+        spacing: dp(6)
+
+        Widget:
+
+        # Punto de color: late suavemente solo cuando la conexion esta en vivo
+        Widget:
+            size_hint: None, None
+            size: dp(10), dp(10)
+            pos_hint: {'center_y': 0.5}
+            opacity: app.pulse_opacity
+            canvas:
+                Color:
+                    rgba: app.connection_color
+                Ellipse:
+                    pos: self.pos
+                    size: self.size
+
+        Label:
+            text: app.connection_text
+            font_size: '14sp'
+            bold: True
+            color: app.connection_color
+            size_hint_x: None
+            width: self.texture_size[0]
+
+    Label:
+        text: app.gps_text
+        font_size: '11sp'
+        color: 1, 1, 1, 0.85
+        halign: 'right'
+        valign: 'middle'
+        text_size: self.size
+        shorten: True
+        shorten_from: 'left'
+
+
+# Resumen de la vuelta al desconectarse (mismo estilo que los popups originales)
+<SummaryRow@BoxLayout>:
+    size_hint_y: None
+    height: dp(30)
+
+    Label:
+        id: name
+        font_size: '16sp'
+        color: 0.8, 0.8, 0.8, 1
+        halign: 'left'
+        valign: 'middle'
+        text_size: self.size
+
+    Label:
+        id: value
+        font_size: '16sp'
+        bold: True
+        color: 1, 1, 1, 1
+        halign: 'right'
+        valign: 'middle'
+        text_size: self.size
+
+<SummaryPopup@Popup>:
+    title: "Resumen de la vuelta"
+    bold:True
+    separator_color: 0, 0, 0, 1
+    size_hint: .9, None
+    height: dp(440)
+    auto_dismiss: False
+    title_color: 1, 1, 1, 1
+    title_size: '20sp'
+    background_color: 0,0,0,1
+    separator_height: 2
+
+    canvas.before:
+        Color:
+            rgba: (36/255, 75/255, 94/255, 1)
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [15]
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 8
+
+        BoxLayout:
+            id: body
+            orientation: 'vertical'
+            spacing: 2
+
+        Label:
+            id: file_info
+            text: ''
+            font_size: '13sp'
+            color: 0.8, 0.8, 0.8, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width, None
+            size_hint_y: None
+            height: dp(40)
+
+        BoxLayout:
+            size_hint_y: None
+            height: '44dp'
+            spacing: 10
+
+            Button:
+                id: open_button
+                text: "Abrir Excel"
+                bold:True
+                background_normal: ''
+                background_color: (167/255, 208/255, 210/255, 1)
+                color: 0, 0, 0, 1
+                on_release: app.open_last_excel()
+
+            Button:
+                id: share_button
+                text: "Compartir"
+                bold:True
+                background_normal: ''
+                background_color: (167/255, 208/255, 210/255, 1)
+                color: 0, 0, 0, 1
+                on_release: app.share_last_excel()
+
+            Button:
+                text: "OK"
+                bold:True
+                background_color: 0.3, 0.3, 0.3, 1
+                color: 1, 1, 1, 1
+                on_release: root.dismiss()
+
+
 # Main Window
 <MainWindow>:
     name: 'main_window'
@@ -186,10 +322,12 @@ WindowManager:
                 font_name: 'BalooBhaijaan2-Bold.ttf'
                 color: 1,1,1,1
                 height: '70dp'
-                width: self.parent.width - dp(90)
+                width: dp(150)
                 halign: 'left'
                 valign: 'middle'
                 padding_x: dp(20)
+
+            StatusInfo:
 
     # "Label Bluetooth Connection Design"
     Label:
@@ -236,6 +374,20 @@ WindowManager:
             text_color: 0,0,0,0
             background_color: 0.6, 0.6, 0.561, 1
             on_text: app.device_clicked(*args)
+
+        # "Button Reconectar": 1 toque al ultimo ESP32 guardado, sin escanear
+        MDFillRoundFlatButton:
+            id: reconnect_button
+            text: 'Reconectar a ' + app.last_device_name
+            font_size: 32
+            font_name: 'Roboto-Bold.ttf'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.3}
+            md_bg_color: (167/255, 208/255, 210/255, 1)
+            text_color: 0, 0, 0, 1
+            ripple_effect: False
+            opacity: 1 if (app.last_device_name and app.connection_state == 'disconnected') else 0
+            disabled: not (app.last_device_name and app.connection_state == 'disconnected')
+            on_release: app.reconnect_last()
 
         # "Animación para indicar acción"
         MDSpinner:
@@ -291,10 +443,12 @@ WindowManager:
                 font_name: 'BalooBhaijaan2-Bold.ttf'
                 color: 1,1,1,1
                 height: '70dp'
-                width: self.parent.width - dp(90)
+                width: dp(150)
                 halign: 'left'
                 valign: 'middle'
                 padding_x: dp(20)
+
+            StatusInfo:
 
     # Menu de Navegador
     MDBottomNavigation:
@@ -339,10 +493,12 @@ WindowManager:
                         font_name: 'BalooBhaijaan2-Bold.ttf'
                         color: 1,1,1,1
                         height: '70dp'
-                        width: self.parent.width - dp(90)
+                        width: dp(150)
                         halign: 'left'
                         valign: 'middle'
                         padding_x: dp(20)
+
+                    StatusInfo:
 
             # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
             MDFloatLayout:
@@ -466,6 +622,7 @@ WindowManager:
                             track_color_normal: 0.4, 0.898, 0.223, 1
                             track_color_active: 0.4, 0.898, 0.223, 1
                             pos_hint: {'center_x':0.5,'center_y':0.5}
+                            disabled: not app.live
                             on_active:
                                 app.switch_motion_detect(*args)
 
@@ -492,6 +649,7 @@ WindowManager:
                         markup: True
                         md_bg_color: (153/255, 153/255, 143/255, 1)
                         text_color: (18/255, 18/255, 18/255, 1)
+                        disabled: not app.live
                         on_release:
                             app.slider_unit_per(*args)
 
@@ -505,6 +663,7 @@ WindowManager:
                         markup: True
                         md_bg_color: (167/255, 208/255, 210/255, 1)
                         text_color: (18/255, 18/255, 18/255, 1)
+                        disabled: not app.live
                         on_release:
                             app.slider_unit_km(*args)
 
@@ -536,6 +695,7 @@ WindowManager:
                         hint_text_color: 'white'
                         hint_bg_color: (36/255, 75/255, 94/255, 1)
                         thumb_color_disabled: 'grey'
+                        disabled: not app.live
                         on_value:
                             app.slider_on_value(*args)
                         on_touch_up: if self.collide_point(*args[1].pos): app.slider_touch_up(*args)
