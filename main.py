@@ -23,19 +23,20 @@ from BLE import (Connection, communication_manager, STATE_CONNECTED,
                  STATE_CONNECTING, STATE_DISCONNECTED, STATE_RECONNECTING)
 from gpshelper import GpsHelper
 from AccHelper import AccHelper
+from GyroHelper import GyroHelper
 from trip import TripTracker, format_duration
 from ride_log import RideLog, XLSX_MIME, build_workbook, recovered_summary, started_at
 from android_utils import (keep_screen_on, open_saved_file, save_to_downloads,
                            sdk_int, share_saved_file)
 from kivy.factory import Factory
 
-# Caracteristica unica de lectura/escritura del ESP32 (NO cambiar)
+# Single read/write characteristic of the ESP32 (do NOT change)
 CHAR_UUID = "00002A3D-0000-1000-8000-00805f9b34fb"
 GPS_ON = True
 STORE_FILE = 'ebike_store.json'
 DEVICE_PLACEHOLDER = '...'
-EXCEL_FOLDER = 'eBike'          # subcarpeta dentro de Descargas
-GPS_STALE_S = 10.0              # sin fijas nuevas en este tiempo = sin senial
+EXCEL_FOLDER = 'eBike'          # subfolder inside Downloads
+GPS_STALE_S = 10.0              # no new fixes within this time = no signal
 PENDING_SUFFIX = '  (sin aplicar)'
 
 STATE_TEXTS = {
@@ -65,15 +66,15 @@ class SpinnerDropdown(DropDown): pass
 
 
 class Main(MDApp):
-    # Estado de la conexion: alimenta el indicador de la barra superior
+    # Connection state: feeds the indicator in the top bar
     connection_state = StringProperty(STATE_DISCONNECTED)
     connection_text = StringProperty(STATE_TEXTS[STATE_DISCONNECTED])
     connection_detail = StringProperty('')
     connection_color = ListProperty(STATE_COLORS[STATE_DISCONNECTED])
     pulse_opacity = NumericProperty(1.0)
-    live = BooleanProperty(False)            # True solo si los datos del ESP32 estan vigentes
+    live = BooleanProperty(False)            # True only while the ESP32 data is current
     last_device_name = StringProperty('')
-    assist_pending = BooleanProperty(False)  # SP visible pero "sin aplicar" tras reconectar
+    assist_pending = BooleanProperty(False)  # SP shown but "not applied" after reconnecting
     gps_text = StringProperty('GPS inactivo')
 
     screen_flag = True
@@ -88,7 +89,7 @@ class Main(MDApp):
         """setting design for application widget development specifications on design.kv"""
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Gray'
-        # Una sola instancia del GPS para toda la app
+        # A single GPS instance for the whole app
         self.gps = GpsHelper()
         if GPS_ON:
             self.get_permissions()
@@ -107,7 +108,7 @@ class Main(MDApp):
         """On start method for building desired variables for later use"""
         Logger.info("Called start")
 
-        # Conexion (misma logica de reconexion que la app nueva)
+        # Connection (same reconnection logic as the new app)
         self._tasks = {}
         self._device_map = {}
         self.connection = None
@@ -116,8 +117,9 @@ class Main(MDApp):
         self._prev_state = STATE_DISCONNECTED
         self._assist_ever_sent = False
         self.acc_helper = AccHelper()
+        self.gyro_helper = GyroHelper()
 
-        # Vuelta en curso: resumen y Excel
+        # Ride in progress: summary and Excel
         self.trip = TripTracker()
         self.ride_log = RideLog(os.path.join(self.user_data_dir, 'vueltas'))
         self.last_excel = None
@@ -126,17 +128,17 @@ class Main(MDApp):
         self._last_manipulation = None
         self.adapt_on = False
 
-        # Ventana Conexión BLE
-        # Menu desplegante oculto mientras no se busquen y encuentren dispositivos
+        # BLE Connection window
+        # Dropdown menu hidden until devices are searched for and found
         self._hide_device_list()
 
-        # Ventana Status
+        # Status window
         self.speedmeter_indicator = self.root.get_screen('secondary_window').ids.speed_indicator
         self.sp_indicator = self.root.get_screen('secondary_window').ids.sp_indicator
         self.manip_indicator = self.root.get_screen('secondary_window').ids.manip_indicator
         self.baterry_indicator = self.root.get_screen('secondary_window').ids.baterry_indicator
 
-        # Ventana Settings
+        # Settings window
         self.angle_indicator = self.root.get_screen('secondary_window').ids.angle_indicator
         self.read_slider_text = self.root.get_screen('secondary_window').ids.read_slider_text
         self.per_button_pressed = True
@@ -151,11 +153,11 @@ class Main(MDApp):
         self._recover_unsaved_ride()
         Clock.schedule_interval(self._tick, 1.0)
 
-        # El GPS arranca desde aqui para que ya tenga senial al conectar
+        # The GPS starts here so it already has a signal when connecting
         self.start_gps()
 
     def start_gps(self, *args) -> None:
-        """Arranca el GPS (una sola vez). Si falla, no debe tumbar la conexion BLE."""
+        """Starts the GPS (only once). If it fails, it must not bring down the BLE connection."""
         if not GPS_ON:
             return
         try:
@@ -173,26 +175,26 @@ class Main(MDApp):
                     print('Got all permissions')
                 else:
                     print('Did not get all permissions')
-                # Llega en el hilo de Java: el GPS se arranca en el de Kivy
+                # Arrives on the Java thread: the GPS is started on Kivy's
                 Clock.schedule_once(self.start_gps)
 
             wanted = [Permission.ACCESS_COARSE_LOCATION, Permission.ACCESS_FINE_LOCATION,
                       Permission.BLUETOOTH, Permission.BLUETOOTH_ADMIN,
                       'android.permission.BLUETOOTH_SCAN', Permission.BLUETOOTH_CONNECT]
             if sdk_int() < 29:
-                # Android 9 o menos: guardar el Excel en Descargas requiere este permiso
+                # Android 9 or lower: saving the Excel to Downloads needs this permission
                 wanted.append('android.permission.WRITE_EXTERNAL_STORAGE')
             try:
-                # ACCESS_BACKGROUND_LOCATION no va aqui: en Android 11+ invalida toda la peticion
+                # ACCESS_BACKGROUND_LOCATION does not go here: on Android 11+ it voids the whole request
                 request_permissions(wanted, callback)
             except Exception as e:
                 print(e)
 
     # ------------------------------------------------------------------ #
-    # Tareas asincronas: una sola instancia de cada una
+    # Async tasks: a single instance of each one
     # ------------------------------------------------------------------ #
     def _start_task(self, name: str, coro) -> asyncio.Future:
-        """Crea una tarea unica por nombre; si ya existia, la cancela antes."""
+        """Creates a single task per name; if it already existed, cancels it first."""
         self._cancel_task(name)
         task = asyncio.ensure_future(coro)
         self._tasks[name] = task
@@ -211,7 +213,7 @@ class Main(MDApp):
                 self._cancel_task(name)
 
     def log_task_inventory(self, tag: str = '') -> None:
-        """Permite verificar en logcat que no quedan tareas duplicadas."""
+        """Lets you check in logcat that no duplicate tasks are left."""
         alive = sorted(n for n, t in self._tasks.items() if not t.done())
         try:
             total = len(asyncio.all_tasks())
@@ -220,25 +222,25 @@ class Main(MDApp):
         Logger.info(f'[BLE] Inventario {tag}: propias={alive} asyncio_total={total}')
 
     # ------------------------------------------------------------------ #
-    # Conexion / desconexion (igual que en la app nueva)
+    # Connection / disconnection (same as in the new app)
     # ------------------------------------------------------------------ #
     def connect_ble(self, *_) -> None:
-        """Boton 'Search Devices': escanea y deja elegir en la lista."""
+        """'Search Devices' button: scans and lets the user pick from the list."""
         self.start_connection(None)
 
     def reconnect_last(self, *_) -> None:
-        """Boton 'Reconectar a <nombre>': un toque, sin escanear."""
+        """'Reconectar a <name>' button: one tap, no scanning."""
         if not self.last_device.get('address'):
             return
         Logger.info('[BLE] Reconexion manual al ultimo dispositivo')
         self.start_connection(dict(self.last_device))
 
     def start_connection(self, target: Optional[dict] = None) -> None:
-        """Arranca la conexion y todas sus tareas desde cero."""
+        """Starts the connection and all its tasks from scratch."""
         if self.connection_state != STATE_DISCONNECTED:
             Logger.info('[BLE] Ya hay una conexion en curso, se ignora el toque')
             return
-        # Conectar a proposito limpia la bandera de desconexion manual.
+        # Connecting on purpose clears the manual disconnect flag.
         self.manual_disconnect = False
         self.assist_pending = False
         self._assist_ever_sent = False
@@ -249,6 +251,7 @@ class Main(MDApp):
 
         self._start_task('ble', self._ble_main(target))
         self._start_task('acc', self.acc_helper.run(self.datajson_queue))
+        self._start_task('gyro', self.gyro_helper.run(self.update_angle))
         self._start_task('battery', self.update_battery_value())
         self._start_task('speed', self.update_speed_value())
         self._start_task('manipulation', self.update_manipulation_value())
@@ -256,7 +259,7 @@ class Main(MDApp):
         self.log_task_inventory('al conectar')
 
     async def _ble_main(self, target: Optional[dict] = None) -> None:
-        """Crea la conexion y corre su gestor hasta que se cancele la tarea."""
+        """Creates the connection and runs its manager until the task is cancelled."""
         connection = Connection(app=self,
                                 read_char=CHAR_UUID,
                                 write_char=CHAR_UUID,
@@ -270,9 +273,9 @@ class Main(MDApp):
         await connection.manager()
 
     async def _shutdown_connection(self) -> None:
-        """Desconexion manual: corta todo y NO vuelve a intentar."""
+        """Manual disconnect: cuts everything and does NOT retry."""
         connection, self.connection = self.connection, None
-        for name in ('ble', 'ble_comm', 'acc', 'battery', 'speed', 'manipulation'):
+        for name in ('ble', 'ble_comm', 'acc', 'gyro', 'battery', 'speed', 'manipulation'):
             self._cancel_task(name)
         if connection is not None:
             await connection.close()
@@ -280,7 +283,7 @@ class Main(MDApp):
         self.log_task_inventory('tras desconectar')
 
     def _drain_queues(self) -> None:
-        """Tira datos viejos para no mandarselos al ESP32 al reconectar."""
+        """Drops old data so it is not sent to the ESP32 after reconnecting."""
         for queue in (self.datajson_queue, self.speed_queue, self.device_queue,
                       self.battery_queue, self.manipulation_queue):
             while True:
@@ -290,10 +293,10 @@ class Main(MDApp):
                     break
 
     # ------------------------------------------------------------------ #
-    # Estado de la conexion (indicador de la barra superior)
+    # Connection state (top bar indicator)
     # ------------------------------------------------------------------ #
     def set_connection_state(self, state: str, detail: str = '') -> None:
-        """Unica puerta de entrada para cambiar el estado de la conexion."""
+        """Single entry point to change the connection state."""
         if state != self.connection_state:
             Logger.info(f'[BLE] Estado: {self.connection_state} -> {state} {detail}'.strip())
             self._prev_state = self.connection_state
@@ -305,8 +308,8 @@ class Main(MDApp):
         self.live = (state == STATE_CONNECTED)
         self.connection_color = list(STATE_COLORS.get(state, STATE_COLORS[STATE_DISCONNECTED]))
 
-        # Seguridad: tras una reconexion el SP queda "sin aplicar" hasta que
-        # el usuario toque el control.
+        # Safety: after a reconnection the SP stays "not applied" until
+        # the user touches the control.
         if state == STATE_CONNECTED and self._prev_state == STATE_RECONNECTING:
             self.assist_pending = self._assist_ever_sent
 
@@ -316,8 +319,8 @@ class Main(MDApp):
         self._apply_live_ui()
 
         if state == STATE_CONNECTED:
-            # La vuelta empieza al conectar de verdad (no al escanear) y sigue
-            # durante las reconexiones; termina solo al desconectar a mano.
+            # The ride starts on a real connection (not while scanning) and goes on
+            # through reconnections; it only ends on a manual disconnect.
             if not self.trip.running:
                 self._start_ride()
             self.root.get_screen('main_window').ids.spinner.active = False
@@ -337,7 +340,7 @@ class Main(MDApp):
         self.connection_text = text
 
     def _update_pulse(self) -> None:
-        """El punto del indicador late suavemente solo cuando esta 'en vivo'."""
+        """The indicator dot pulses gently only while 'live'."""
         Animation.cancel_all(self, 'pulse_opacity')
         if self.connection_state != STATE_CONNECTED:
             self.pulse_opacity = 1.0
@@ -347,17 +350,16 @@ class Main(MDApp):
         pulse.start(self)
 
     def _apply_live_ui(self) -> None:
-        """Borra los datos del ESP32 cuando ya no estan vigentes."""
+        """Clears the ESP32 data when it is no longer current."""
         if self.live or not hasattr(self, 'baterry_indicator'):
             return
         self.baterry_indicator.text = '—'
         self.baterry_indicator.set_value = 0
         self.sp_indicator.text = 'SP: —'
         self.manip_indicator.text = 'M: —'
-        self.angle_indicator.text = 'Angle : —'
 
     def on_assist_pending(self, *_) -> None:
-        """Marca el SP mostrado mientras no se haya vuelto a enviar."""
+        """Marks the displayed SP until it has been sent again."""
         label = getattr(self, 'read_slider_text', None)
         if label is None:
             return
@@ -365,22 +367,30 @@ class Main(MDApp):
         label.text = base + (PENDING_SUFFIX if self.assist_pending else '')
 
     def update_data_age(self, age: float) -> None:
-        """La llama el vigilante de BLE una vez por segundo."""
+        """Called by the BLE watchdog once per second."""
         if self.connection_state == STATE_CONNECTED:
             self.set_connection_state(STATE_CONNECTED,
                                       f'· {int(age)} s' if age >= 3 else '')
 
-    def update_angle(self, value) -> None:
-        """Inclinacion en grados que manda el ESP32."""
-        try:
-            self.angle_value = float(value)
-        except (TypeError, ValueError):
+    def update_angle(self, value: float) -> None:
+        """Tilt in degrees measured with the phone's gyroscope."""
+        self.angle_value = value
+        self.angle_indicator.text = f'Angle : {round(value)}°'
+        self.trip.set_angle(value)
+
+    def zero_angle(self, *_) -> None:
+        """Tap on the angle: the current tilt becomes 0° (phone on its mount, bike on flat ground)."""
+        if not self.gyro_helper.set_zero():
             return
-        self.angle_indicator.text = f'Angle : {self.angle_value:.0f}°'
-        self.trip.set_angle(self.angle_value)
+        self.update_angle(0.0)
+        try:
+            self.store.put('angle_zero', offset=self.gyro_helper.zero)
+            Logger.info(f'[GYRO] Nuevo cero del angulo: {self.gyro_helper.zero:.1f}°')
+        except Exception as e:
+            Logger.warning(f'[GYRO] No se pudo guardar el cero del angulo: {e!r}')
 
     # ------------------------------------------------------------------ #
-    # Ultimo dispositivo (sobrevive al cierre de la app)
+    # Last device and angle zero (survive closing the app)
     # ------------------------------------------------------------------ #
     def _load_store(self) -> None:
         try:
@@ -391,11 +401,13 @@ class Main(MDApp):
                                     'address': data.get('address', '')}
                 self.last_device_name = self.last_device['name']
                 Logger.info(f'[BLE] Ultimo dispositivo recordado: {self.last_device}')
+            if self.store.exists('angle_zero'):
+                self.gyro_helper.zero = float(self.store.get('angle_zero')['offset'])
         except Exception as e:
             Logger.warning(f'[BLE] No se pudo leer el almacenamiento local: {e!r}')
 
     def remember_device(self, name: str, address: str) -> None:
-        """Guarda en disco el ultimo ESP32 al que si se logro conectar."""
+        """Saves to disk the last ESP32 that was actually connected."""
         if not address:
             return
         name = name or address
@@ -410,7 +422,7 @@ class Main(MDApp):
             Logger.warning(f'[BLE] No se pudo guardar el ultimo dispositivo: {e!r}')
 
     # ------------------------------------------------------------------ #
-    # Lista de dispositivos de la pantalla principal
+    # Device list on the main screen
     # ------------------------------------------------------------------ #
     def _hide_device_list(self) -> None:
         dropdown = self.root.get_screen('main_window').ids.device_dropdown
@@ -422,25 +434,25 @@ class Main(MDApp):
         dropdown.disabled = True
 
     def show_scanning(self, active: bool) -> None:
-        """La llama BLE.py mientras escanea."""
+        """Called by BLE.py while scanning."""
         self.root.get_screen('main_window').ids.spinner.active = bool(active)
         if active:
             self._hide_device_list()
 
     def fill_device_list(self, devices: dict) -> None:
-        """Llena el Spinner con los dispositivos encontrados {nombre: direccion}."""
+        """Fills the Spinner with the devices found {name: address}."""
         self._device_map = dict(devices)
         dropdown = self.root.get_screen('main_window').ids.device_dropdown
         dropdown.values = list(devices.keys())
         dropdown.text = DEVICE_PLACEHOLDER
-        # Mismo tamanio que tenia la lista en la version original
+        # Same size the list had in the original version
         dropdown.size = (self.root.width - 200, 100)
         dropdown.opacity = 1
         dropdown.disabled = False
         self.root.get_screen('main_window').ids.spinner.active = False
 
     def device_clicked(self, _, value: str) -> None:
-        """Acepta cualquier dispositivo de la lista, no solo uno llamado ESP32."""
+        """Accepts any device from the list, not only one named ESP32."""
         if not value or value == DEVICE_PLACEHOLDER or value not in self._device_map:
             return
         Logger.info(f'[BLE] Dispositivo seleccionado: {value}')
@@ -448,7 +460,7 @@ class Main(MDApp):
         self.root.get_screen('main_window').ids.spinner.active = True
 
     def _send_assist(self, payload: dict) -> None:
-        """Comandos de asistencia: SOLO por accion del usuario y con conexion viva."""
+        """Assist commands: ONLY from a user action and with a live connection."""
         if not self.live or self.manual_disconnect:
             Logger.info(f'[BLE] Sin conexion viva, comando ignorado: {payload}')
             return
@@ -457,10 +469,10 @@ class Main(MDApp):
         self.assist_pending = False
 
     # ------------------------------------------------------------------ #
-    # Vuelta: GPS, resumen al desconectarse y Excel
+    # Ride: GPS, summary on disconnect and Excel
     # ------------------------------------------------------------------ #
     def _tick(self, _dt) -> None:
-        """Latido de 1 Hz: distancia de la vuelta, ubicacion y fila del Excel."""
+        """1 Hz heartbeat: ride distance, location and Excel row."""
         fix = self.gps.last_fix
         if self.trip.running and fix:
             self.trip.add_fix(fix.get('lat'), fix.get('lon'), fix.get('speed_kmh'),
@@ -486,7 +498,7 @@ class Main(MDApp):
             self.gps_text = 'GPS inactivo'
 
     def _snapshot(self) -> dict:
-        """Una fila del Excel con lo que se sabe en este segundo."""
+        """One Excel row with what is known at this second."""
         fix = self._fresh_fix()
         live = self.live
         acc_y = getattr(self.acc_helper, 'y', None)
@@ -501,9 +513,9 @@ class Main(MDApp):
             'precision': round(fix['accuracy'], 1) if fix else None,
             'dist': round(self.trip.distance_km, 3),
             'bateria': self._last_battery if live else None,
-            'angulo': self.angle_value if live else None,
+            'angulo': round(self.angle_value, 1) if self.angle_value is not None else None,
             'pendiente': (round(self.trip.slope_percent, 1)
-                          if live and self.angle_value is not None else None),
+                          if self.angle_value is not None else None),
             'm': self._last_manipulation if live else None,
             'sp': slider.value,
             'sp_enviado': self.slider_value,
@@ -518,7 +530,7 @@ class Main(MDApp):
         self.ride_log.start()
 
     def _finish_ride(self, show_summary: bool = True) -> None:
-        """Cierra la vuelta: guarda el Excel y muestra el resumen."""
+        """Closes the ride: saves the Excel and shows the summary."""
         if not self.trip.running:
             return
         self.trip.stop()
@@ -532,7 +544,7 @@ class Main(MDApp):
             if show_summary:
                 self.show_ride_summary(summary, saved)
         except Exception as e:
-            # El diario queda en disco y se recupera al volver a abrir la app
+            # The journal stays on disk and is recovered when the app is reopened
             Logger.error(f'[XLS] Error al cerrar la vuelta: {e!r}')
 
     def _summary_rows(self, summary: dict, samples: int) -> list:
@@ -566,7 +578,7 @@ class Main(MDApp):
         return saved
 
     def _recover_unsaved_ride(self) -> None:
-        """Si la app se cerro de golpe a media vuelta, exporta lo que quedo grabado."""
+        """If the app was closed abruptly mid-ride, exports what was recorded."""
         if not self.ride_log.has_unsaved():
             return
         rows = self.ride_log.load_rows()
@@ -603,7 +615,7 @@ class Main(MDApp):
     def switch_motion_detect(self, _, value: bool) -> None:
         """Switch state for adaptive mode switch. When in adaptive mode, the slider is disabled"""
         self.adapt_on = bool(value)
-        self._send_assist({'adapt': 0 if value else 1})
+        self._send_assist({'adapt': 1 if value else 0})
         slider = self.root.get_screen('secondary_window').ids.adapt_slider
         slider.value = slider.min
 
@@ -725,29 +737,30 @@ class Main(MDApp):
 
     def accept_disconnect(self, touch: bool) -> None:
         if touch:
-            # La bandera se pone ANTES de tocar la UI para que ningun handler
-            # alcance a encolar comandos de ultimo momento.
+            # The flag is set BEFORE touching the UI so that no handler
+            # gets to queue last-moment commands.
             self.manual_disconnect = True
             Logger.info('[BLE] Desconexion manual solicitada: no habra reintentos')
             self.root.current = 'main_window'
             self.root.get_screen('secondary_window').ids.nav.switch_tab('screen 1')
             self.reset_ui_and_variables()
             self._start_task('shutdown', self._shutdown_connection())
-            # Primero se corta la conexion; despues se guarda el Excel y sale el resumen
+            # First the connection is cut; then the Excel is saved and the summary shown
             self._finish_ride()
 
     def reset_ui_and_variables(self):
-        # Ventana Conexión BLE
+        # BLE Connection window
         self._hide_device_list()
         self.root.get_screen('main_window').ids.spinner.active = False
 
-        # Ventana Status
+        # Status window
         self.baterry_indicator.text = '—'
         self.baterry_indicator.set_value = 0
         self.sp_indicator.text = 'SP: —'
         self.manip_indicator.text = 'M: —'
 
-        # Ventana Settings
+        # Settings window
+        self.angle_value = None
         self.angle_indicator.text = 'Angle : —'
         self.slider_label = 'slider'
         self.slider_value = 0
@@ -768,7 +781,7 @@ class Main(MDApp):
             os._exit(0)
 
     def on_stop(self):
-        """Si se sale con una vuelta en curso, se guarda su Excel."""
+        """If the app exits with a ride in progress, its Excel is saved."""
         if getattr(self, 'trip', None) is not None and self.trip.running:
             self._finish_ride(show_summary=False)
         Animation.cancel_all(self)

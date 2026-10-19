@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Registro de cada vuelta: diario en disco y exportacion a Excel.
+"""Log of every ride: journal on disk and export to Excel.
 
-Cada segundo se agrega una linea JSON al diario y se hace flush, asi que si la
-app se cierra de golpe no se pierde lo grabado; al terminar se convierte a .xlsx.
+Every second a JSON line is appended to the journal and flushed, so if the
+app closes abruptly nothing recorded is lost; at the end it becomes an .xlsx.
 """
 import json
 import os
@@ -15,7 +15,7 @@ from excel import build_xlsx
 
 XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
-# (llave en el diario, encabezado en Excel, ancho de columna)
+# (journal key, Excel header, column width)
 COLUMNS = [
     ('fecha', 'Fecha y hora', 20),
     ('t', 'Tiempo (s)', 11),
@@ -39,7 +39,7 @@ COLUMNS = [
 
 
 class RideLog:
-    """Diario de la vuelta en curso (JSON Lines)."""
+    """Journal of the ride in progress (JSON Lines)."""
 
     def __init__(self, folder: str):
         self.folder = folder
@@ -81,7 +81,7 @@ class RideLog:
         self._file = None
 
     def has_unsaved(self) -> bool:
-        """Quedo un diario de una vuelta que no se exporto (la app se cerro de golpe)."""
+        """A journal of a ride that was never exported is left (the app closed abruptly)."""
         return not self.active and os.path.exists(self.path) and os.path.getsize(self.path) > 0
 
     def load_rows(self) -> list:
@@ -95,7 +95,7 @@ class RideLog:
                     try:
                         rows.append(json.loads(line))
                     except ValueError:
-                        pass   # ultima linea a medias si la app se cerro de golpe
+                        pass   # half-written last line if the app closed abruptly
         except OSError as e:
             Logger.warning(f'[XLS] No se pudo leer el diario: {e!r}')
         return rows
@@ -117,7 +117,7 @@ def _parse_date(value):
 
 
 def build_workbook(rows: list, summary: list) -> bytes:
-    """Excel con dos hojas: 'Datos' (una fila por segundo) y 'Resumen'."""
+    """Excel with two sheets: 'Datos' (one row per second) and 'Resumen'."""
     data = [[title for _key, title, _width in COLUMNS]]
     for row in rows:
         data.append([_parse_date(row.get(key)) if key == 'fecha' else row.get(key)
@@ -128,7 +128,7 @@ def build_workbook(rows: list, summary: list) -> bytes:
 
 
 def recovered_summary(rows: list) -> list:
-    """Resumen aproximado de una vuelta recuperada del diario."""
+    """Approximate summary of a ride recovered from the journal."""
     speeds = [r['vel'] for r in rows if isinstance(r.get('vel'), (int, float))]
     last = rows[-1] if rows else {}
     first = rows[0] if rows else {}

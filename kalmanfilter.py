@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-"""Filtro de Kalman escalar para la velocidad del GPS, en Python puro.
+"""Scalar Kalman filter for the GPS speed, in pure Python.
 
-No usa filterpy: su Q_discrete_white_noise solo acepta dim de 2 a 4.
+Does not use filterpy: its Q_discrete_white_noise only accepts dim 2 to 4.
 """
 from typing import Optional
 
 
 class SpeedKalman:
-    """Caminata aleatoria: la velocidad cambia por aceleraciones que no se miden."""
+    """Random walk: the speed changes through accelerations that are not measured."""
 
     def __init__(self, accel_std: float = 1.0, meas_var: float = 0.25):
-        self.accel_var = accel_std ** 2   # (m/s^2)^2: que tan rapido puede cambiar la velocidad
-        self.meas_var = meas_var          # (m/s)^2: ruido por defecto de una medicion
+        self.accel_var = accel_std ** 2   # (m/s^2)^2: how fast the speed can change
+        self.meas_var = meas_var          # (m/s)^2: default noise of a measurement
         self.reset()
 
     def reset(self) -> None:
-        self.x: Optional[float] = None    # velocidad estimada en m/s
-        self.p = 0.0                      # varianza de la estimacion
+        self.x: Optional[float] = None    # estimated speed in m/s
+        self.p = 0.0                      # variance of the estimate
 
     def predict(self, dt: float = 1.0) -> None:
         if self.x is None:
@@ -25,7 +25,7 @@ class SpeedKalman:
         self.p += self.accel_var * dt * dt
 
     def update(self, z: float, r: Optional[float] = None) -> float:
-        """Incorpora una medicion z (m/s) con varianza r y regresa la estimacion."""
+        """Adds a measurement z (m/s) with variance r and returns the estimate."""
         r = self.meas_var if r is None else max(float(r), 1e-4)
         z = float(z)
         if self.x is None:
@@ -38,6 +38,6 @@ class SpeedKalman:
 
 
 def KalmanWrapper(*args) -> SpeedKalman:
-    """Nombre original, por compatibilidad con quien lo importe."""
+    """Original name, kept for compatibility with whoever imports it."""
     return SpeedKalman()
 

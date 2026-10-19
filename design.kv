@@ -152,7 +152,7 @@ WindowManager:
         halign: 'center'
 
 
-# Estado de la conexion y ubicacion del GPS, a la derecha de la barra superior
+# Connection state and GPS location, on the right of the top bar
 <StatusInfo@BoxLayout>:
     orientation: 'vertical'
     padding: 0, dp(12), dp(16), dp(12)
@@ -162,7 +162,7 @@ WindowManager:
 
         Widget:
 
-        # Punto de color: late suavemente solo cuando la conexion esta en vivo
+        # Color dot: pulses gently only while the connection is live
         Widget:
             size_hint: None, None
             size: dp(10), dp(10)
@@ -194,7 +194,7 @@ WindowManager:
         shorten_from: 'left'
 
 
-# Resumen de la vuelta al desconectarse (mismo estilo que los popups originales)
+# Ride summary on disconnect (same style as the original popups)
 <SummaryRow@BoxLayout>:
     size_hint_y: None
     height: dp(30)
@@ -293,19 +293,19 @@ WindowManager:
     name: 'main_window'
 
     # "Top Bar Design"
-    # Se ajusta la Top Bar para posicionarla en la parte superior
+    # Anchors the Top Bar to the top of the screen
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'top'
 
-        # Se define el contenedor de la Top Bar
+        # Top Bar container
         BoxLayout:
             orientation: 'horizontal'
             size_hint: None, None
             height: '70dp'
             width: self.parent.width
 
-            # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
+            # Draws a rectangle inside the container and gives it a solid color
             canvas.before:
                 Color:
                     rgba: (36/255, 75/255, 94/255, 1)
@@ -313,7 +313,7 @@ WindowManager:
                     pos: self.pos
                     size: self.size
 
-            # Se añade un label al contenedor
+            # Adds a label to the container
             Label:
                 text: 'eBIKE'
                 text_size: self.size
@@ -338,7 +338,7 @@ WindowManager:
         height: self.texture_size[1]
         pos_hint: {'center_x': 0.5,'center_y':0.8}
 
-    # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+    # Container to place widgets freely, without fixed constraints
     MDFloatLayout:
         size: root.width, root.height/2
 
@@ -361,7 +361,7 @@ WindowManager:
                 self.text_color = [0, 0, 0, 1]
                 app.connect_ble(*args)
 
-        # "Button Menú despegable"
+        # "Dropdown Menu Button"
         Spinner:
             id: device_dropdown
             text: '...'
@@ -375,7 +375,7 @@ WindowManager:
             background_color: 0.6, 0.6, 0.561, 1
             on_text: app.device_clicked(*args)
 
-        # "Button Reconectar": 1 toque al ultimo ESP32 guardado, sin escanear
+        # "Reconnect Button": 1 tap to the last saved ESP32, without scanning
         MDFillRoundFlatButton:
             id: reconnect_button
             text: 'Reconectar a ' + app.last_device_name
@@ -389,7 +389,7 @@ WindowManager:
             disabled: not (app.last_device_name and app.connection_state == 'disconnected')
             on_release: app.reconnect_last()
 
-        # "Animación para indicar acción"
+        # "Animation to show activity"
         MDSpinner:
             id: spinner
             pos_hint: {'center_x':0.5,'center_y':0.5}
@@ -414,19 +414,19 @@ WindowManager:
 # Secondary Window
 <SecondaryWindow>:
     name: 'secondary_window'
-    # Se ajusta la Top Bar para posicionarla en la parte superior
+    # Anchors the Top Bar to the top of the screen
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'top'
 
-        # Se define el contenedor de la Top Bar
+        # Top Bar container
         BoxLayout:
             orientation: 'horizontal'
             size_hint: None, None
             height: '70dp'
             width: self.parent.width
 
-            # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
+            # Draws a rectangle inside the container and gives it a solid color
             canvas.before:
                 Color:
                     rgba: (36/255, 75/255, 94/255, 1)
@@ -434,7 +434,7 @@ WindowManager:
                     pos: self.pos
                     size: self.size
 
-            # Se añade un label al contenedor
+            # Adds a label to the container
             Label:
                 text: 'eBIKE'
                 text_size: self.size
@@ -450,7 +450,7 @@ WindowManager:
 
             StatusInfo:
 
-    # Menu de Navegador
+    # Navigation menu
     MDBottomNavigation:
         id: nav
         panel_color: "#244B5E"
@@ -464,19 +464,19 @@ WindowManager:
             on_tab_release: app.screen_flag_1(*args)
             icon: 'velocimetro.png'
 
-            # Se ajusta la Top Bar para posicionarla en la parte superior
+            # Anchors the Top Bar to the top of the screen
             AnchorLayout:
                 anchor_x: 'center'
                 anchor_y: 'top'
 
-                # Se define el contenedor de la Top Bar
+                # Top Bar container
                 BoxLayout:
                     orientation: 'horizontal'
                     size_hint: None, None
                     height: '70dp'
                     width: self.parent.width
 
-                    # Se dibuja un rectangulo dentro del contenedor y se le asigan un color sólido
+                    # Draws a rectangle inside the container and gives it a solid color
                     canvas.before:
                         Color:
                             rgba: (36/255, 75/255, 94/255, 1)
@@ -484,7 +484,7 @@ WindowManager:
                             pos: self.pos
                             size: self.size
 
-                    # Se añade un label al contenedor
+                    # Adds a label to the container
                     Label:
                         text: 'eBIKE'
                         text_size: self.size
@@ -500,7 +500,7 @@ WindowManager:
 
                     StatusInfo:
 
-            # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+            # Container to place widgets freely, without fixed constraints
             MDFloatLayout:
                 size: root.width, root.height
                 orientation: 'vertical'
@@ -514,7 +514,7 @@ WindowManager:
                     pos_hint: {'center_x': 0.5,'center_y':0.85}
                     color: 1, 1, 1, 1
 
-                # Se define un circular progress como indicador de velocidad en Km
+                # Circular progress as the speed indicator in km/h
                 CircularProgressBar:
                     id: speed_indicator
                     text: '0 km/h'
@@ -538,7 +538,7 @@ WindowManager:
                     pos_hint: {'center_x': 0.5,'center_y':0.35}
                     color: 1, 1, 1, 1
 
-                # Se define un circular progress como indicador de bateria en %
+                # Circular progress as the battery indicator in %
                 CircularProgressBar:
                     id: baterry_indicator
                     text: '0%'
@@ -561,7 +561,7 @@ WindowManager:
                     pos_hint: {'center_x': 0.5,'center_y':0.6}
                     color: 1, 1, 1, 1
 
-                # Se define un indicador del Set Point deseado
+                # Indicator of the desired Set Point
                 MDRectangleFlatButton:
                     id: sp_indicator
                     text: 'SP: 0'
@@ -572,7 +572,7 @@ WindowManager:
                     bold: True
                     font_size: 54
 
-                # Se define un indicador de la Manipulación
+                # Indicator of the Manipulation
                 MDRectangleFlatButton:
                     id: manip_indicator
                     text: 'M: 0'
@@ -590,18 +590,18 @@ WindowManager:
             icon: 'configuraciones.png'
             on_tab_release: app.screen_flag_2(*args)
 
-            # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+            # Container to place widgets freely, without fixed constraints
             MDBoxLayout:
                 orientation: 'vertical'
                 size: root.width, root.height
 
-                # Se define el siguiente subcontenedor para posicionar widgets sin restricciones fijas
+                # Sub-container to place widgets freely, without fixed constraints
                 MDBoxLayout:
                     size: root.width, root.height*0.2
                     orientation: 'vertical'
                     padding: '10dp'
 
-                    # Sección Motion Detect
+                    # Motion Detect section
                     MDCard:
                         color:
                         rgba:(0.208, 0.208, 0.192, 1)
@@ -635,7 +635,7 @@ WindowManager:
                     pos_hint: {'center_x': 0.5,'center_y':0.6}
                     color: 1, 1, 1, 1
 
-                # Se define el siguiente contenedor para posicionar widgets sin restricciones fijas
+                # Container to place widgets freely, without fixed constraints
                 MDFloatLayout:
                     size: root.width, root.height*0.3
 
@@ -653,7 +653,7 @@ WindowManager:
                         on_release:
                             app.slider_unit_per(*args)
 
-                    # Button Automatico
+                    # Button Automatic
                     MDFillRoundFlatButton:
                         text: 'Automatic '
                         font_size: 38
@@ -712,16 +712,17 @@ WindowManager:
                         #pos_hint: {'center_x': 0.5, 'center_y': 0.4}
 
 
-                    # Se define un indicador del Set Point deseado
+                    # Tilt from the phone's gyroscope; tap to take the current tilt as 0°
                     MDRectangleFlatButton:
                         id: angle_indicator
-                        text: 'Angle : 0°'
+                        text: 'Angle : —'
                         font_size: 54
                         text_color: 1,1,1,1
                         bold: True
                         pos_hint: {'center_x': 0.5, 'center_y': 0.4}
                         markup: True
                         md_bg_color: (36/255, 75/255, 94/255, 1)
+                        on_release: app.zero_angle()
 
 
         MDBottomNavigationItem:

@@ -6,10 +6,10 @@ import json
 
 
 class AccHelper:
-    """Lee el acelerometro del celular y publica acc_y para el ESP32.
+    """Reads the phone's accelerometer and publishes acc_y for the ESP32.
 
-    run() es una corrutina: main.py la registra como tarea unica y la cancela
-    al desconectar, asi no quedan lecturas huerfanas.
+    run() is a coroutine: main.py registers it as a single task and cancels it
+    on disconnect, so no orphan readings are left behind.
     """
     sensor_enabled: bool = False
     x = 0

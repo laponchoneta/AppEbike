@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Capa BLE de eBIKE: una sola conexion, con reconexion automatica."""
+"""eBIKE BLE layer: a single connection, with automatic reconnection."""
 import asyncio
 import json
 import time
@@ -11,7 +11,7 @@ from kivy.clock import Clock
 
 from android_utils import is_bluetooth_enabled
 
-# Parametros de reconexion BLE
+# BLE reconnection parameters
 RECONNECT_INTERVAL = 5.0
 CONNECT_TIMEOUT = 10.0
 GATT_TIMEOUT = 5.0
@@ -60,7 +60,7 @@ class Connection:
         return bool(getattr(self.app, 'manual_disconnect', False))
 
     def _set_state(self, state: str, detail: str = '') -> None:
-        # Proteger UI: enviar al hilo principal de Kivy
+        # Protect the UI: hand it over to Kivy's main thread
         Clock.schedule_once(lambda dt: self.app.set_connection_state(state, detail))
 
     def mark_data(self) -> None:
@@ -89,7 +89,7 @@ class Connection:
         self._signal_drop()
 
     def _attach_jni(self) -> None:
-        """Evita un Segmentation Fault forzando a que el hilo se reconozca en JNI."""
+        """Avoids a Segmentation Fault by forcing the thread to be known to JNI."""
         try:
             from jnius import autoclass
             autoclass('java.lang.System')
@@ -231,9 +231,9 @@ class Connection:
         return True
 
     def notification_handler(self, _sender: Any, data: Any) -> None:
-        """¡CRÍTICO! Este handler es llamado por Bleak desde un hilo secundario de Java.
-        Cualquier manipulación de UI o asyncio.Queue aquí crashea la app. 
-        Debemos derivarlo al hilo principal."""
+        """CRITICAL! Bleak calls this handler from a secondary Java thread.
+        Any UI or asyncio.Queue manipulation here crashes the app. 
+        It must be handed over to the main thread."""
         try:
             raw = bytes(data).decode('utf-8', errors='ignore')
             if self._loop and self._loop.is_running():
@@ -242,7 +242,7 @@ class Connection:
             pass
 
     def _safe_dispatch(self, raw: str) -> None:
-        """Se ejecuta ya de forma segura en el hilo principal de la app."""
+        """Runs safely on the app's main thread."""
         self.mark_data()
         self.dispatch_payload(raw)
 
@@ -262,8 +262,6 @@ class Connection:
             self.battery_queue.put_nowait(msg['battery'])
         if 'manipulation' in msg:
             self.manipulation_queue.put_nowait(msg['manipulation'])
-        if 'angle' in msg:
-            Clock.schedule_once(lambda dt, a=msg['angle']: self.app.update_angle(a))
         return True
 
 

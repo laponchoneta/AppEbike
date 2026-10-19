@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
-"""Recorrido en vivo: distancia, tiempo, velocidad y pendiente.
+"""Live ride: distance, time, speed and slope.
 
-La distancia se calcula con Haversine entre fijas consecutivas del GPS
-(la formula estaba en gpshelper.py y se movio aqui, ya corregida).
-Solo usa datos que ya tenemos: GPS del celular y el campo 'angle' del ESP32.
+Distance is computed with Haversine between consecutive GPS fixes
+(the formula was in gpshelper.py and was moved here, already fixed).
+Only uses data we already have: the phone's GPS and the tilt from its gyroscope.
 """
 import time
 from math import asin, cos, pi, radians, sqrt, tan
 
 EARTH_RADIUS_KM = 6371.0
 
-# --- Filtros contra el ruido del GPS cuando la bici esta detenida ---
-MAX_ACCURACY_M = 25.0    # descarta fijas imprecisas (mismo criterio que gpshelper)
-MIN_SEGMENT_M = 3.0      # saltos mas chicos que esto se consideran ruido
-MIN_MOVING_KMH = 2.0     # debajo de esta velocidad se considera detenido
-MAX_SPEED_MS = 30.0      # 108 km/h: salto imposible en bicicleta
-MAX_SLOPE_PERCENT = 40.0  # la pendiente se recorta a un rango creible
-MIN_KM_FOR_RANGE = 1.0   # antes de 1 km la autonomia estimada no es creible
+# --- Filters against GPS noise while the bike is stopped ---
+MAX_ACCURACY_M = 25.0    # discards inaccurate fixes (same criterion as gpshelper)
+MIN_SEGMENT_M = 3.0      # jumps smaller than this are considered noise
+MIN_MOVING_KMH = 2.0     # below this speed the bike is considered stopped
+MAX_SPEED_MS = 30.0      # 108 km/h: impossible jump on a bicycle
+MAX_SLOPE_PERCENT = 40.0  # the slope is clipped to a believable range
+MIN_KM_FOR_RANGE = 1.0   # before 1 km the estimated range is not believable
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Distancia en km entre dos coordenadas."""
+    """Distance in km between two coordinates."""
     p = pi / 180
     return 2 * EARTH_RADIUS_KM * asin(sqrt(
         0.5 - cos((lat2 - lat1) * p) / 2
@@ -28,14 +28,14 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def slope_from_angle(angle_deg: float) -> float:
-    """Pendiente en % a partir de la inclinacion en grados del ESP32."""
+    """Slope in % from the tilt in degrees."""
     angle_deg = max(-89.0, min(89.0, float(angle_deg)))
     return max(-MAX_SLOPE_PERCENT,
                min(MAX_SLOPE_PERCENT, tan(radians(angle_deg)) * 100.0))
 
 
 class TripTracker:
-    """Acumula las metricas de un recorrido."""
+    """Accumulates the metrics of a ride."""
 
     def __init__(self):
         self.reset()
@@ -73,7 +73,7 @@ class TripTracker:
 
     @property
     def avg_speed(self) -> float:
-        """Promedio sobre el tiempo en movimiento, no sobre el total."""
+        """Average over the moving time, not over the total time."""
         if self.moving_seconds < 1.0:
             return 0.0
         return self.distance_km / (self.moving_seconds / 3600.0)
@@ -86,7 +86,7 @@ class TripTracker:
 
     @property
     def battery_per_km(self):
-        """Porcentaje de bateria gastado por kilometro, o None si no alcanza."""
+        """Battery percentage used per kilometer, or None if there is not enough data."""
         used = self.battery_used
         if not used or self.distance_km < MIN_KM_FOR_RANGE:
             return None
@@ -94,7 +94,7 @@ class TripTracker:
 
     @property
     def estimated_range_km(self):
-        """Autonomia estimada (experimental): solo tiene sentido tras 1 km."""
+        """Estimated range (experimental): only meaningful after 1 km."""
         per_km = self.battery_per_km
         if not per_km or self.battery_last is None:
             return None
@@ -116,7 +116,7 @@ class TripTracker:
         self.battery_last = level
 
     def add_fix(self, lat, lon, speed_kmh=0.0, accuracy=0.0, timestamp=None) -> bool:
-        """Agrega una fija del GPS. Devuelve True si sumo distancia."""
+        """Adds a GPS fix. Returns True if it added distance."""
         if not self.running:
             return False
         now = timestamp or time.time()
@@ -143,7 +143,7 @@ class TripTracker:
             return False
         meters = haversine_km(previous[0], previous[1], lat, lon) * 1000.0
 
-        # Detenido: el GPS "baila" unos metros y acumularia kilometros falsos.
+        # Stopped: the GPS "wanders" a few meters and would add up fake kilometers.
         if speed_kmh < MIN_MOVING_KMH or meters < MIN_SEGMENT_M:
             return False
         if meters / elapsed > MAX_SPEED_MS:
@@ -155,7 +155,7 @@ class TripTracker:
         return True
 
     def summary(self) -> dict:
-        """Resumen que se guarda en el historial."""
+        """Summary saved to the history."""
         return {
             'inicio': self.started_at or time.time(),
             'fin': self.ended_at or time.time(),
@@ -168,7 +168,7 @@ class TripTracker:
 
 
 def format_duration(seconds: float) -> str:
-    """Segundos -> 'MM:SS' o 'H:MM:SS'."""
+    """Seconds -> 'MM:SS' or 'H:MM:SS'."""
     seconds = int(max(0, seconds))
     hours, rest = divmod(seconds, 3600)
     minutes, secs = divmod(rest, 60)

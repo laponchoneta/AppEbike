@@ -34,7 +34,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.3
+version = 0.4
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -42,7 +42,7 @@ version = 0.3
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-# Sin scipy/numpy/filterpy: ya no se usan, y scipy obligaba a compilar lapack con gfortran.
+# No scipy/numpy/filterpy: they are no longer used, and scipy forced compiling lapack with gfortran.
 requirements = python3,kivy,requests,certifi,plyer,bleak==0.20.2,kivymd==1.0.2,typing_extensions,async_timeout,Pillow,docutils,idna
 
 

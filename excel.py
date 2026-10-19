@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Escritor minimo de archivos .xlsx (Excel) sin dependencias externas.
+"""Minimal .xlsx (Excel) file writer with no external dependencies.
 
-Un .xlsx es un zip con XML (Office Open XML); estas partes bastan para que
-Excel, Google Sheets y LibreOffice lo abran.
+An .xlsx is a zip of XML files (Office Open XML); these parts are enough for
+Excel, Google Sheets and LibreOffice to open it.
 """
 import io
 import math
@@ -13,7 +13,7 @@ from xml.sax.saxutils import escape
 
 STYLE_DEFAULT, STYLE_HEADER, STYLE_DATETIME = 0, 1, 2
 
-_EPOCH = datetime(1899, 12, 30)   # dia 0 de las fechas de Excel
+_EPOCH = datetime(1899, 12, 30)   # day 0 of Excel dates
 _INVALID_XML = re.compile('[\x00-\x08\x0b\x0c\x0e-\x1f]')
 _INVALID_SHEET_CHARS = re.compile(r'[\[\]:*?/\\]')
 
@@ -90,7 +90,7 @@ def _sheet_xml(rows: list, widths: list) -> str:
 
 
 def _sheet_name(name: str, used: set) -> str:
-    """Excel no acepta []:*?/\\ ni nombres de mas de 31 caracteres."""
+    """Excel does not accept []:*?/\\ nor names longer than 31 characters."""
     clean = _INVALID_SHEET_CHARS.sub(' ', name).strip()[:31] or 'Hoja'
     candidate, n = clean, 2
     while candidate.lower() in used:
@@ -102,9 +102,9 @@ def _sheet_name(name: str, used: set) -> str:
 
 
 def build_xlsx(sheets: list) -> bytes:
-    """sheets: lista de (nombre, filas, anchos). La fila 0 de cada hoja es el encabezado.
+    """sheets: list of (name, rows, widths). Row 0 of each sheet is the header.
 
-    Valores aceptados: str, int, float, bool, datetime y None (celda vacia).
+    Accepted values: str, int, float, bool, datetime and None (empty cell).
     """
     used, names = set(), []
     for name, _rows, _widths in sheets:

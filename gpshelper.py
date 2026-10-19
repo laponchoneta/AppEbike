@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Velocidad del GPS del celular, leida directo del LocationManager de Android.
+"""Phone GPS speed, read directly from Android's LocationManager.
 
-No se usa plyer.gps: su LocationListener no implementa onLocationChanged(List),
-que es la variante que Android 12+ invoca, y ahi nunca llega ninguna lectura.
+plyer.gps is not used: its LocationListener does not implement onLocationChanged(List),
+which is the variant Android 12+ calls, so no reading ever arrives there.
 """
 import asyncio
 import time
@@ -16,20 +16,20 @@ from kivy.utils import platform
 from kalmanfilter import SpeedKalman
 
 GPS_PROVIDER = 'gps'
-MIN_TIME_MS = 0            # 0 = tan rapido como lo entregue el chip GNSS (casi siempre 1 Hz)
-MIN_DISTANCE_M = 0.0       # sin minimo: tambien hay lecturas estando detenido
-PUBLISH_MIN_S = 0.25       # cada envio BLE tarda ~0.15 s; mas rapido solo acumula atraso
-MAX_ACCURACY_M = 25.0      # precision minima para calcular velocidad por posicion
-MAX_SPEED_MS = 30.0        # 108 km/h: lectura imposible en bicicleta
-MIN_SPEED_STD = 0.2        # m/s, piso para el error que reporta el GNSS
-DOPPLER_VAR = 0.5 ** 2     # (m/s)^2 si el celular no reporta la precision de la velocidad
-POSITION_VAR = 1.5 ** 2    # (m/s)^2: la velocidad por diferencia de posiciones es mas ruidosa
+MIN_TIME_MS = 0            # 0 = as fast as the GNSS chip delivers (almost always 1 Hz)
+MIN_DISTANCE_M = 0.0       # no minimum: there are readings while stopped too
+PUBLISH_MIN_S = 0.25       # each BLE write takes ~0.15 s; faster only piles up delay
+MAX_ACCURACY_M = 25.0      # minimum accuracy to compute speed from positions
+MAX_SPEED_MS = 30.0        # 108 km/h: impossible reading on a bicycle
+MIN_SPEED_STD = 0.2        # m/s, floor for the error reported by the GNSS
+DOPPLER_VAR = 0.5 ** 2     # (m/s)^2 if the phone does not report the speed accuracy
+POSITION_VAR = 1.5 ** 2    # (m/s)^2: speed from position differences is noisier
 PERMISSION_RETRY_S = 2.0
 EARTH_RADIUS_M = 6371000.0
 
 
 def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Distancia en metros entre dos coordenadas."""
+    """Distance in meters between two coordinates."""
     p = pi / 180
     return 2 * EARTH_RADIUS_M * asin(sqrt(
         0.5 - cos((lat2 - lat1) * p) / 2
@@ -51,7 +51,7 @@ if platform == 'android':
     SDK_INT = autoclass('android.os.Build$VERSION').SDK_INT
 
     def _read_location(location) -> dict:
-        """Copia los datos a Python en el mismo hilo de Java que los entrega."""
+        """Copies the data into Python on the same Java thread that delivers it."""
         fix = {
             'lat': location.getLatitude(),
             'lon': location.getLongitude(),
@@ -65,7 +65,7 @@ if platform == 'android':
         return fix
 
     class _LocationListener(PythonJavaClass):
-        """Recibe las ubicaciones en el hilo de UI de Android y se las pasa a GpsHelper."""
+        """Receives the locations on Android's UI thread and hands them to GpsHelper."""
         __javainterfaces__ = ['android/location/LocationListener']
 
         def __init__(self, on_fix, on_provider):
@@ -83,7 +83,7 @@ if platform == 'android':
         def onLocationChanged(self, location):
             self._deliver(location)
 
-        # Android 12+ entrega las lecturas por esta variante; sin ella no llega ninguna
+        # Android 12+ delivers the readings through this variant; without it none arrive
         @java_method('(Ljava/util/List;)V', name='onLocationChanged')
         def onLocationChangedBatch(self, locations):
             for i in range(locations.size()):
@@ -107,29 +107,29 @@ if platform == 'android':
 
 
 class GpsHelper:
-    """Lee la velocidad del GPS y la publica filtrada, en km/h, en speed_queue."""
+    """Reads the GPS speed and publishes it filtered, in km/h, to speed_queue."""
 
     def __init__(self):
         self.speed_queue: Optional[asyncio.Queue] = None
         self.running = False
-        self.velocity = 0.0          # km/h filtrada con Kalman: es la que se envia al ESP32
-        self.raw_velocity = 0.0      # km/h tal como la reporta el GNSS
+        self.velocity = 0.0          # km/h filtered with Kalman: this is what goes to the ESP32
+        self.raw_velocity = 0.0      # km/h as reported by the GNSS
         self.readings = 0
         self.last_fix = {}
-        self.last_fix_time = 0.0     # time.time() de la ultima fija recibida, buena o mala
+        self.last_fix_time = 0.0     # time.time() of the last fix received, good or bad
         self.last_accuracy = 0.0
         self.kf = SpeedKalman()
-        self._prev = None            # ultima fija precisa, para la velocidad por posicion
+        self._prev = None            # last accurate fix, for the speed from positions
         self._last_t = None
         self._last_publish = 0.0
         self._manager = None
-        self._listener = None        # debe seguir vivo mientras Android pueda llamarlo
+        self._listener = None        # must stay alive while Android can call it
         self._retry = None
         self._warned = False
         self._dialog = None
 
     def run(self, speed_queue: asyncio.Queue) -> None:
-        """Arranca el GPS una sola vez; llamarlo de nuevo solo actualiza la cola."""
+        """Starts the GPS only once; calling it again only updates the queue."""
         self.speed_queue = speed_queue
         if self.running or platform != 'android':
             return
@@ -180,7 +180,7 @@ class GpsHelper:
             self._retry.cancel()
             self._retry = None
 
-    # Android llama desde su hilo de UI; Kivy y asyncio solo se tocan desde el de Kivy
+    # Android calls from its UI thread; Kivy and asyncio are only touched from Kivy's thread
     @mainthread
     def _on_fix(self, fix: dict) -> None:
         self.handle_fix(fix)
@@ -194,7 +194,7 @@ class GpsHelper:
             self.open_gps_access_popup()
 
     def handle_fix(self, fix: dict) -> None:
-        """Procesa una fija: calcula la velocidad, la filtra y la publica."""
+        """Processes a fix: computes the speed, filters it and publishes it."""
         self.last_fix_time = time.time()
         accuracy = fix.get('accuracy')
         self.last_accuracy = accuracy if accuracy is not None else 0.0
@@ -219,7 +219,7 @@ class GpsHelper:
         self._publish(self.velocity)
 
     def _measure(self, fix: dict):
-        """Velocidad en m/s y su varianza. Prefiere el Doppler que reporta el GNSS."""
+        """Speed in m/s and its variance. Prefers the Doppler speed reported by the GNSS."""
         speed = fix.get('speed')
         if speed is not None:
             std = fix.get('speed_acc')
@@ -238,7 +238,7 @@ class GpsHelper:
         return speed, variance
 
     def _publish(self, kmh: float) -> None:
-        """Deja en la cola solo la lectura mas nueva: al ESP32 no le sirven las viejas."""
+        """Leaves only the newest reading in the queue: old ones are useless to the ESP32."""
         queue = self.speed_queue
         now = time.monotonic()
         if queue is None or now - self._last_publish < PUBLISH_MIN_S:

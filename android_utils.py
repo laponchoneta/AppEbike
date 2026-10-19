@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Utilidades de Android (pyjnius). En escritorio no hacen nada o usan una carpeta local."""
+"""Android utilities (pyjnius). On desktop they do nothing or use a local folder."""
 import os
 from typing import Optional
 
@@ -8,7 +8,7 @@ from kivy.utils import platform
 
 
 def keep_screen_on(enable: bool) -> None:
-    """Activa/desactiva FLAG_KEEP_SCREEN_ON para que la pantalla no se apague."""
+    """Turns FLAG_KEEP_SCREEN_ON on/off so the screen does not switch off."""
     if platform != 'android':
         return
     try:
@@ -33,7 +33,7 @@ def keep_screen_on(enable: bool) -> None:
 
 
 def is_bluetooth_enabled() -> bool:
-    """True si el Bluetooth del celular esta encendido (o si no es Android)."""
+    """True if the phone's Bluetooth is on (or if this is not Android)."""
     if platform != 'android':
         return True
     try:
@@ -43,13 +43,13 @@ def is_bluetooth_enabled() -> bool:
         adapter = BluetoothAdapter.getDefaultAdapter()
         return bool(adapter and adapter.isEnabled())
     except Exception as e:
-        # Si no se puede consultar, asumimos que si para no bloquear el reintento.
+        # If it cannot be queried, assume it is on so the retry is not blocked.
         Logger.warning(f'[BLE] No se pudo consultar el estado del Bluetooth: {e!r}')
         return True
 
 
 def sdk_int() -> int:
-    """Nivel de API de Android (0 fuera de Android)."""
+    """Android API level (0 outside Android)."""
     if platform != 'android':
         return 0
     try:
@@ -59,13 +59,13 @@ def sdk_int() -> int:
         return 0
 
 
-# --- Archivos en Descargas -------------------------------------------------
-# Android/data/<paquete> no lo pueden abrir otras apps desde Android 11; por eso
-# los Excel se guardan en Descargas/<subcarpeta>.
+# --- Files in Downloads ----------------------------------------------------
+# Since Android 11 other apps cannot open Android/data/<package>; that is why
+# the Excel files are saved to Downloads/<subfolder>.
 
 def save_to_downloads(filename: str, data: bytes, mime: str, subfolder: str,
                       fallback_dir: str) -> Optional[dict]:
-    """Guarda el archivo y regresa {'name', 'location', 'uri', 'path'} o None."""
+    """Saves the file and returns {'name', 'location', 'uri', 'path'} or None."""
     if platform == 'android':
         try:
             if sdk_int() >= 29:
@@ -77,7 +77,7 @@ def save_to_downloads(filename: str, data: bytes, mime: str, subfolder: str,
 
 
 def _save_mediastore(filename: str, data: bytes, mime: str, subfolder: str) -> dict:
-    """Android 10+: MediaStore, no necesita permisos."""
+    """Android 10+: MediaStore, needs no permissions."""
     from jnius import autoclass
 
     activity = autoclass('org.kivy.android.PythonActivity').mActivity
@@ -106,7 +106,7 @@ def _save_mediastore(filename: str, data: bytes, mime: str, subfolder: str) -> d
 
 
 def _save_public_downloads(filename: str, data: bytes, mime: str, subfolder: str) -> dict:
-    """Android 9 o menos: archivo directo en Descargas (pide WRITE_EXTERNAL_STORAGE)."""
+    """Android 9 or lower: file written straight to Downloads (needs WRITE_EXTERNAL_STORAGE)."""
     from jnius import autoclass
 
     Environment = autoclass('android.os.Environment')
@@ -129,7 +129,7 @@ def _save_public_downloads(filename: str, data: bytes, mime: str, subfolder: str
 
 
 def _save_local(filename: str, data: bytes, folder: str) -> Optional[dict]:
-    """Ultimo recurso (y escritorio): carpeta privada de la app."""
+    """Last resort (and desktop): the app's private folder."""
     try:
         os.makedirs(folder, exist_ok=True)
         path = os.path.join(folder, filename)
@@ -143,7 +143,7 @@ def _save_local(filename: str, data: bytes, folder: str) -> Optional[dict]:
 
 
 def _content_uri(saved: dict):
-    """Uri que otras apps pueden leer: el de MediaStore, o file:// en Android 9 o menos."""
+    """Uri other apps can read: the MediaStore one, or file:// on Android 9 or lower."""
     from jnius import autoclass
 
     if saved.get('uri') is not None:
@@ -152,7 +152,7 @@ def _content_uri(saved: dict):
         return None
     StrictMode = autoclass('android.os.StrictMode')
     VmPolicyBuilder = autoclass('android.os.StrictMode$VmPolicy$Builder')
-    # Sin esto Android 7+ lanza FileUriExposedException con un Uri file://
+    # Without this, Android 7+ throws FileUriExposedException for a file:// Uri
     StrictMode.setVmPolicy(VmPolicyBuilder().build())
     return autoclass('android.net.Uri').fromFile(autoclass('java.io.File')(saved['path']))
 
@@ -167,7 +167,7 @@ def _start_chooser(intent, title: str) -> None:
 
 
 def open_saved_file(saved: Optional[dict], mime: str) -> bool:
-    """Abre el archivo con la app que elija el usuario (Excel, Sheets...)."""
+    """Opens the file with the app the user picks (Excel, Sheets...)."""
     if platform != 'android' or not saved:
         return False
     try:
@@ -188,7 +188,7 @@ def open_saved_file(saved: Optional[dict], mime: str) -> bool:
 
 
 def share_saved_file(saved: Optional[dict], mime: str) -> bool:
-    """Menu de compartir de Android (WhatsApp, Drive, correo...)."""
+    """Android share menu (WhatsApp, Drive, email...)."""
     if platform != 'android' or not saved:
         return False
     try:
