@@ -472,7 +472,7 @@ class Main(MDApp):
     # Ride: GPS, summary on disconnect and Excel
     # ------------------------------------------------------------------ #
     def _tick(self, _dt) -> None:
-        """1 Hz heartbeat: ride distance, location and Excel row."""
+        """1 Hz heartbeat: ride distance, location, Excel row and angle for the ESP32."""
         fix = self.gps.last_fix
         if self.trip.running and fix:
             self.trip.add_fix(fix.get('lat'), fix.get('lon'), fix.get('speed_kmh'),
@@ -480,6 +480,8 @@ class Main(MDApp):
         self._refresh_gps_text()
         if self.ride_log.active:
             self.ride_log.add(self._snapshot())
+        if self.live and self.angle_value is not None:
+            self.datajson_queue.put_nowait(json.dumps({'angle': round(self.angle_value, 1)}))
 
     def _fresh_fix(self) -> dict:
         fix = self.gps.last_fix
