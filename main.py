@@ -75,6 +75,7 @@ class Main(MDApp):
     live = BooleanProperty(False)            # True only while the ESP32 data is current
     last_device_name = StringProperty('')
     assist_pending = BooleanProperty(False)  # SP shown but "not applied" after reconnecting
+    recording = BooleanProperty(False)       # data logging switch: rows go to the Excel only while on
     gps_text = StringProperty('GPS inactivo')
 
     screen_flag = True
@@ -403,6 +404,8 @@ class Main(MDApp):
                 Logger.info(f'[BLE] Ultimo dispositivo recordado: {self.last_device}')
             if self.store.exists('angle_zero'):
                 self.gyro_helper.zero = float(self.store.get('angle_zero')['offset'])
+            if self.store.exists('data_log'):
+                self.recording = bool(self.store.get('data_log').get('enabled', False))
         except Exception as e:
             Logger.warning(f'[BLE] No se pudo leer el almacenamiento local: {e!r}')
 
@@ -478,7 +481,7 @@ class Main(MDApp):
             self.trip.add_fix(fix.get('lat'), fix.get('lon'), fix.get('speed_kmh'),
                               fix.get('accuracy'), fix.get('time'))
         self._refresh_gps_text()
-        if self.ride_log.active:
+        if self.recording and self.ride_log.active:
             self.ride_log.add(self._snapshot())
         if self.live and self.angle_value is not None:
             self.datajson_queue.put_nowait(json.dumps({'angle': round(self.angle_value, 1)}))
@@ -540,11 +543,13 @@ class Main(MDApp):
         try:
             rows = self.ride_log.load_rows()
             summary = self._summary_rows(self.trip.summary(), len(rows))
-            saved = self._save_excel(rows, summary, datetime.fromtimestamp(self.trip.started_at))
-            if saved:
+            # Logging was off the whole ride: there is no Excel to make
+            saved = (self._save_excel(rows, summary, datetime.fromtimestamp(self.trip.started_at))
+                     if rows else None)
+            if saved or not rows:
                 self.ride_log.discard()
             if show_summary:
-                self.show_ride_summary(summary, saved)
+                self.show_ride_summary(summary, saved, recorded=bool(rows))
         except Exception as e:
             # The journal stays on disk and is recovered when the app is reopened
             Logger.error(f'[XLS] Error al cerrar la vuelta: {e!r}')
@@ -592,7 +597,8 @@ class Main(MDApp):
             Logger.info(f'[XLS] Vuelta recuperada: {saved["location"]}')
         self.ride_log.discard()
 
-    def show_ride_summary(self, summary: list, saved: Optional[dict]) -> None:
+    def show_ride_summary(self, summary: list, saved: Optional[dict],
+                          recorded: bool = True) -> None:
         popup = Factory.SummaryPopup()
         body = popup.ids.body
         body.clear_widgets()
@@ -601,8 +607,12 @@ class Main(MDApp):
             row.ids.name.text = name
             row.ids.value.text = str(value)
             body.add_widget(row)
-        popup.ids.file_info.text = (f'Excel guardado en {saved["location"]}' if saved
-                                    else 'No se pudo guardar el Excel')
+        if saved:
+            popup.ids.file_info.text = f'Excel guardado en {saved["location"]}'
+        elif recorded:
+            popup.ids.file_info.text = 'No se pudo guardar el Excel'
+        else:
+            popup.ids.file_info.text = 'No se grabaron datos: no se generó Excel'
         popup.ids.open_button.disabled = not saved
         popup.ids.share_button.disabled = not saved
         popup.open()
@@ -613,6 +623,18 @@ class Main(MDApp):
 
     def share_last_excel(self, *_) -> None:
         share_saved_file(self.last_excel, XLSX_MIME)
+
+    def switch_recording(self, _, value: bool) -> None:
+        """'Registro de datos' switch: can be changed at any time and is remembered."""
+        value = bool(value)
+        if value == self.recording:
+            return
+        self.recording = value
+        Logger.info(f'[XLS] Registro de datos {"activado" if value else "desactivado"}')
+        try:
+            self.store.put('data_log', enabled=value)
+        except Exception as e:
+            Logger.warning(f'[XLS] No se pudo guardar la opcion de registro: {e!r}')
 
     def switch_motion_detect(self, _, value: bool) -> None:
         """Switch state for adaptive mode switch. When in adaptive mode, the slider is disabled"""

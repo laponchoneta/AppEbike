@@ -600,6 +600,7 @@ WindowManager:
                     size: root.width, root.height*0.2
                     orientation: 'vertical'
                     padding: '10dp'
+                    spacing: '10dp'
 
                     # Motion Detect section
                     MDCard:
@@ -625,6 +626,25 @@ WindowManager:
                             disabled: not app.live
                             on_active:
                                 app.switch_motion_detect(*args)
+
+                    # Data logging: the ride's data only goes to the Excel while this is on
+                    MDCard:
+                        radius: '7dp'
+                        padding: '5dp'
+                        line_color: (0.208, 0.208, 0.192, 1)
+
+                        MDLabel:
+                            text: '     Registro de datos'
+                            font_size: '25sp'
+                            halign: 'center'
+                            pos_hint: {'center_y' : 0.5}
+
+                        MDSwitch:
+                            id: log_switch
+                            track_color_active: 0.4, 0.898, 0.223, 1
+                            pos_hint: {'center_x':0.5,'center_y':0.5}
+                            active: app.recording
+                            on_active: app.switch_recording(*args)
 
                 # Label Mode
                 Label:
