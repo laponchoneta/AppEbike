@@ -75,7 +75,7 @@ class Main(MDApp):
     live = BooleanProperty(False)            # True only while the ESP32 data is current
     last_device_name = StringProperty('')
     assist_pending = BooleanProperty(False)  # SP shown but "not applied" after reconnecting
-    recording = BooleanProperty(False)       # data logging switch: rows go to the Excel only while on
+    capturing = BooleanProperty(False)       # data capture running (Iniciar/Finalizar captura button)
     gps_text = StringProperty('GPS inactivo')
 
     screen_flag = True
@@ -320,10 +320,6 @@ class Main(MDApp):
         self._apply_live_ui()
 
         if state == STATE_CONNECTED:
-            # The ride starts on a real connection (not while scanning) and goes on
-            # through reconnections; it only ends on a manual disconnect.
-            if not self.trip.running:
-                self._start_ride()
             self.root.get_screen('main_window').ids.spinner.active = False
             if self.root.current != 'secondary_window':
                 self.root.current = 'secondary_window'
@@ -404,8 +400,6 @@ class Main(MDApp):
                 Logger.info(f'[BLE] Ultimo dispositivo recordado: {self.last_device}')
             if self.store.exists('angle_zero'):
                 self.gyro_helper.zero = float(self.store.get('angle_zero')['offset'])
-            if self.store.exists('data_log'):
-                self.recording = bool(self.store.get('data_log').get('enabled', False))
         except Exception as e:
             Logger.warning(f'[BLE] No se pudo leer el almacenamiento local: {e!r}')
 
@@ -472,7 +466,7 @@ class Main(MDApp):
         self.assist_pending = False
 
     # ------------------------------------------------------------------ #
-    # Ride: GPS, summary on disconnect and Excel
+    # Ride (data capture between Iniciar and Finalizar): GPS, summary and Excel
     # ------------------------------------------------------------------ #
     def _tick(self, _dt) -> None:
         """1 Hz heartbeat: ride distance, location, Excel row and angle for the ESP32."""
@@ -481,7 +475,7 @@ class Main(MDApp):
             self.trip.add_fix(fix.get('lat'), fix.get('lon'), fix.get('speed_kmh'),
                               fix.get('accuracy'), fix.get('time'))
         self._refresh_gps_text()
-        if self.recording and self.ride_log.active:
+        if self.ride_log.active:
             self.ride_log.add(self._snapshot())
         if self.live and self.angle_value is not None:
             self.datajson_queue.put_nowait(json.dumps({'angle': round(self.angle_value, 1)}))
@@ -530,9 +524,20 @@ class Main(MDApp):
             'conexion': STATE_TEXTS.get(self.connection_state, self.connection_state),
         }
 
+    def toggle_capture(self, *_) -> None:
+        """'Iniciar/Finalizar captura' button: data is only recorded between the two taps."""
+        if self.trip.running:
+            self._finish_ride()
+        else:
+            self._start_ride()
+
     def _start_ride(self) -> None:
         self.trip.start()
+        # The capture can start mid-connection: the battery is already known
+        if self.live and self._last_battery is not None:
+            self.trip.set_battery(self._last_battery)
         self.ride_log.start()
+        self.capturing = True
 
     def _finish_ride(self, show_summary: bool = True) -> None:
         """Closes the ride: saves the Excel and shows the summary."""
@@ -540,10 +545,11 @@ class Main(MDApp):
             return
         self.trip.stop()
         self.ride_log.close()
+        self.capturing = False
         try:
             rows = self.ride_log.load_rows()
             summary = self._summary_rows(self.trip.summary(), len(rows))
-            # Logging was off the whole ride: there is no Excel to make
+            # A capture stopped within its first second has no rows: no Excel
             saved = (self._save_excel(rows, summary, datetime.fromtimestamp(self.trip.started_at))
                      if rows else None)
             if saved or not rows:
@@ -623,18 +629,6 @@ class Main(MDApp):
 
     def share_last_excel(self, *_) -> None:
         share_saved_file(self.last_excel, XLSX_MIME)
-
-    def switch_recording(self, _, value: bool) -> None:
-        """'Registro de datos' switch: can be changed at any time and is remembered."""
-        value = bool(value)
-        if value == self.recording:
-            return
-        self.recording = value
-        Logger.info(f'[XLS] Registro de datos {"activado" if value else "desactivado"}')
-        try:
-            self.store.put('data_log', enabled=value)
-        except Exception as e:
-            Logger.warning(f'[XLS] No se pudo guardar la opcion de registro: {e!r}')
 
     def switch_motion_detect(self, _, value: bool) -> None:
         """Switch state for adaptive mode switch. When in adaptive mode, the slider is disabled"""

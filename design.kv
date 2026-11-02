@@ -583,6 +583,18 @@ WindowManager:
                     bold: True
                     font_size: 54
 
+                # Data capture: nothing is recorded until it is started here
+                MDFillRoundFlatButton:
+                    id: capture_button
+                    text: 'Finalizar captura' if app.capturing else 'Iniciar captura'
+                    font_size: 38
+                    bold: True
+                    font_name: 'Roboto-Bold.ttf'
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.42}
+                    md_bg_color: (0.643, 0.255, 0.255, 1) if app.capturing else (167/255, 208/255, 210/255, 1)
+                    text_color: (1, 1, 1, 1) if app.capturing else (18/255, 18/255, 18/255, 1)
+                    on_release: app.toggle_capture()
+
         # Window 2
         MDBottomNavigationItem:
             name: 'screen 2'
@@ -600,7 +612,6 @@ WindowManager:
                     size: root.width, root.height*0.2
                     orientation: 'vertical'
                     padding: '10dp'
-                    spacing: '10dp'
 
                     # Motion Detect section
                     MDCard:
@@ -626,25 +637,6 @@ WindowManager:
                             disabled: not app.live
                             on_active:
                                 app.switch_motion_detect(*args)
-
-                    # Data logging: the ride's data only goes to the Excel while this is on
-                    MDCard:
-                        radius: '7dp'
-                        padding: '5dp'
-                        line_color: (0.208, 0.208, 0.192, 1)
-
-                        MDLabel:
-                            text: '     Registro de datos'
-                            font_size: '25sp'
-                            halign: 'center'
-                            pos_hint: {'center_y' : 0.5}
-
-                        MDSwitch:
-                            id: log_switch
-                            track_color_active: 0.4, 0.898, 0.223, 1
-                            pos_hint: {'center_x':0.5,'center_y':0.5}
-                            active: app.recording
-                            on_active: app.switch_recording(*args)
 
                 # Label Mode
                 Label:

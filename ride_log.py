@@ -133,7 +133,7 @@ def recovered_summary(rows: list) -> list:
     last = rows[-1] if rows else {}
     first = rows[0] if rows else {}
     return [
-        ('Nota', 'Vuelta recuperada: la app se cerró antes de desconectar'),
+        ('Nota', 'Vuelta recuperada: la app se cerró sin finalizar la captura'),
         ('Inicio', first.get('fecha', '—')),
         ('Duración (s)', last.get('t', '—')),
         ('Distancia (km)', last.get('dist', '—')),
