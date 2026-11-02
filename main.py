@@ -667,7 +667,7 @@ class Main(MDApp):
         
         if self.per_button_pressed:
             self.read_slider_text.text = f'{value} %'
-            value = int(180 * value / 100)
+            value = int(value)
             label = 'slider_per'
         if self.km_button_pressed:
             self.sp_indicator.text = f'SP: {value}'
