@@ -51,6 +51,9 @@ class Connection:
         self.total_attempts = 0
         self.packets = 0
         self.last_data_ts = 0.0
+        # Latest ESP32 values that only go to the data capture
+        self.rpm: Optional[float] = None
+        self.moving: Optional[bool] = None
 
         self._drop_event = asyncio.Event()
         self._loop: Optional[asyncio.AbstractEventLoop] = None
@@ -262,6 +265,16 @@ class Connection:
             self.battery_queue.put_nowait(msg['battery'])
         if 'manipulation' in msg:
             self.manipulation_queue.put_nowait(msg['manipulation'])
+        if 'RPM' in msg:
+            try:
+                self.rpm = round(float(msg['RPM']), 1)
+            except (TypeError, ValueError):
+                pass
+        if 'Mooving' in msg:
+            moving = msg['Mooving']
+            if isinstance(moving, str):
+                moving = moving.strip().lower() in ('1', 'true')
+            self.moving = bool(moving)
         return True
 
 

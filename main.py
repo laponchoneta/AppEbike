@@ -500,15 +500,13 @@ class Main(MDApp):
         """One Excel row with what is known at this second."""
         fix = self._fresh_fix()
         live = self.live
-        acc_y = getattr(self.acc_helper, 'y', None)
+        esp32 = self.connection if live else None
         slider = self.root.get_screen('secondary_window').ids.adapt_slider
         return {
             'fecha': datetime.now().isoformat(timespec='seconds'),
             't': round(self.trip.duration_s, 1),
             'vel': self.gps.velocity if fix else None,
             'vel_cruda': self.gps.raw_velocity if fix else None,
-            'lat': fix.get('lat'),
-            'lon': fix.get('lon'),
             'precision': round(fix['accuracy'], 1) if fix else None,
             'dist': round(self.trip.distance_km, 3),
             'bateria': self._last_battery if live else None,
@@ -516,11 +514,12 @@ class Main(MDApp):
             'pendiente': (round(self.trip.slope_percent, 1)
                           if self.angle_value is not None else None),
             'm': self._last_manipulation if live else None,
+            'rpm': esp32.rpm if esp32 else None,
             'sp': slider.value,
             'sp_enviado': self.slider_value,
             'modo': 'Manual' if self.per_button_pressed else 'Automático',
             'deteccion': 'Sí' if self.adapt_on else 'No',
-            'acc_y': round(acc_y, 3) if isinstance(acc_y, (int, float)) else None,
+            'mooving': esp32.moving if esp32 else None,
             'conexion': STATE_TEXTS.get(self.connection_state, self.connection_state),
         }
 
