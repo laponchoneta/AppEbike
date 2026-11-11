@@ -265,16 +265,21 @@ class Connection:
             self.battery_queue.put_nowait(msg['battery'])
         if 'manipulation' in msg:
             self.manipulation_queue.put_nowait(msg['manipulation'])
-        if 'RPM' in msg:
+        if 'rpm' in msg:
             try:
-                self.rpm = round(float(msg['RPM']), 1)
+                self.rpm = round(float(msg['rpm']), 1)
             except (TypeError, ValueError):
                 pass
-        if 'Mooving' in msg:
-            moving = msg['Mooving']
+        if 'moving' in msg:
+            moving = msg['moving']
             if isinstance(moving, str):
                 moving = moving.strip().lower() in ('1', 'true')
-            self.moving = bool(moving)
+            else:
+                try:
+                    moving = bool(int(moving))
+                except (TypeError, ValueError):
+                    moving = bool(moving)
+            self.moving = moving
         return True
 
 

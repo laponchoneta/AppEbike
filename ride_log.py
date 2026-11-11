@@ -32,7 +32,7 @@ COLUMNS = [
     ('sp_enviado', 'SP enviado al ESP32', 19),
     ('modo', 'Modo', 12),
     ('deteccion', 'Motion Detect (switch)', 22),
-    ('mooving', 'Motion Detect actuando (Mooving)', 31),
+    ('moving', 'Motion Detect actuando (Moving)', 31),
     ('conexion', 'Conexión', 15),
 ]
 

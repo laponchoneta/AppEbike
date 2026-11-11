@@ -519,7 +519,7 @@ class Main(MDApp):
             'sp_enviado': self.slider_value,
             'modo': 'Manual' if self.per_button_pressed else 'Automático',
             'deteccion': 'Sí' if self.adapt_on else 'No',
-            'mooving': esp32.moving if esp32 else None,
+            'moving': esp32.moving if esp32 else None,
             'conexion': STATE_TEXTS.get(self.connection_state, self.connection_state),
         }
 
