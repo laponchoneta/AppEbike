@@ -27,7 +27,8 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (leave empty to not exclude anything)
-#source.exclude_dirs = tests, bin, venv
+# RTOS holds the ESP32 firmware (built by its own workflow); keep it out of the APK.
+source.exclude_dirs = RTOS
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'

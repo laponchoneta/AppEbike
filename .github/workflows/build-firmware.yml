@@ -1,0 +1,54 @@
+name: Build ESP32 firmware
+
+on:
+  push:
+    paths:
+      - "RTOS/**"
+      - ".github/workflows/build-firmware.yml"
+  pull_request:
+    paths:
+      - "RTOS/**"
+      - ".github/workflows/build-firmware.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: PlatformIO build (esp32dev)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: RTOS
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Cache PlatformIO and pip downloads
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio-${{ hashFiles('RTOS/platformio.ini') }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build firmware
+        run: pio run -e esp32dev
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v7
+        with:
+          name: firmware-esp32dev
+          path: |
+            RTOS/.pio/build/esp32dev/firmware.bin
+            RTOS/.pio/build/esp32dev/firmware.elf
+            RTOS/.pio/build/esp32dev/bootloader.bin
+            RTOS/.pio/build/esp32dev/partitions.bin
+          if-no-files-found: error
