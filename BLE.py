@@ -295,8 +295,8 @@ def _collapse(items: list) -> list:
     return list(latest.values())
 
 
-async def _send_pending(connection: Connection, datajson_queue: asyncio.Queue) -> None:
-    pending = []
+async def _send_pending(connection: Connection, datajson_queue: asyncio.Queue, first: Any = None) -> None:
+    pending = [] if first is None else [str(first)]
     while True:
         try:
             pending.append(str(datajson_queue.get_nowait()))
@@ -305,6 +305,7 @@ async def _send_pending(connection: Connection, datajson_queue: asyncio.Queue) -
     if not pending:
         return
 
+    # Each write waits for the ESP32's response, so writes never overlap and need no extra pause.
     for item in _collapse(pending):
         client = connection.client
         if client is None:
@@ -316,7 +317,6 @@ async def _send_pending(connection: Connection, datajson_queue: asyncio.Queue) -
         except Exception as e:
             connection.notify_failure(f'write_gatt_char: {e!r}')
             return
-        await asyncio.sleep(0.1)
 
 
 async def _read_once(connection: Connection) -> None:
@@ -343,8 +343,15 @@ async def communication_manager(connection: Connection, datajson_queue: asyncio.
             if not (connection.client and connection.connected):
                 await asyncio.sleep(0.5)
                 continue
-            await _send_pending(connection, datajson_queue)
-            await _read_once(connection)
-            await asyncio.sleep(POLL_INTERVAL)
+            # Wake up as soon as a command is queued instead of waiting for the next poll cycle.
+            try:
+                first = await asyncio.wait_for(datajson_queue.get(), timeout=POLL_INTERVAL)
+            except asyncio.TimeoutError:
+                first = None
+            if first is not None:
+                await _send_pending(connection, datajson_queue, first)
+            # Telemetry normally arrives by notification; only poll the characteristic when notifications stall.
+            if time.monotonic() - connection.last_data_ts > POLL_INTERVAL:
+                await _read_once(connection)
     except asyncio.CancelledError:
         raise
